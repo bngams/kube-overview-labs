@@ -11,7 +11,8 @@ Fil rouge : Kubernetes compare en permanence **ce qu'on lui demande** (l'état s
 | [00 — Environnement](labs/00-environnement/README.md) | démarrer son cluster, en local (minikube) ou en cloud (k3d) |
 | [01 — Les conteneurs](labs/01-conteneurs/README.md) | image, conteneur, Dockerfile, runtime… et pourquoi il faut un orchestrateur |
 | [02 — Premier Deployment](labs/02-premier-deployment/README.md) | l'état souhaité, Kubernetes répare tout seul |
-| 03 — Passer à l'échelle | *à venir* |
+| [03 — Passer à l'échelle](labs/03-scaling/README.md) | réplicas, « le fichier fait foi », 0 réplica, requests et pods `Pending` |
+| 04 — Services et Ingress | *à venir* |
 
 ## L'application fil rouge
 

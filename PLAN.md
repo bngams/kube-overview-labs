@@ -112,6 +112,7 @@ Recommandation : **GitHub comme source unique, et lecture directement sur GitHub
 
 1. ✅ App : fork [bngams/example-voting-app](https://github.com/bngams/example-voting-app), images publiques `ghcr.io/bngams/kube-vote:{1.0,2.0,3.0}`
 2. ✅ `infra/` : 6 sessions code-server + DinD + k3d, une session validée en local ; DNS scripté (`cloudflare-dns.sh`) ; reste l'installation sur le VPS + test avec 2 ou 3 sessions
-3. ✅ TP00 (local/cloud) + TP2 validés sur minikube et k3d ; ensuite TP1, TP3…
+3. ✅ TP00, TP01, TP02, TP03 validés (minikube + k3d sur le VPS) et relus ; ensuite TP04 (Services, Ingress), TP05, TP06, TP07
+3b. ✅ Sessions cloud préparées (`prepare-sessions.sh`) : 6 clusters prêts, images du cluster importées et vérifiées
 4. Slides HTML + schémas Excalidraw
 5. Glossaire + ressources
