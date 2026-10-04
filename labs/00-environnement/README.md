@@ -103,9 +103,24 @@ kubectl version --client
 k3d version
 ```
 
-### Étape 2 — Créer le cluster
+### Étape 2 — Vérifier son cluster (ou le créer)
 
-k3d crée un cluster Kubernetes **dans le Docker de votre session**, qui n'est partagé avec personne.
+En mode cloud, le formateur a normalement **déjà créé** votre cluster Kubernetes, nommé `tp`, dans le Docker de votre session (qui n'est partagé avec personne). Vérifiez-le :
+
+```bash
+k3d cluster list
+```
+
+Si le cluster existe, le terminal affiche une ligne `tp` :
+
+```
+NAME   SERVERS   AGENTS   LOADBALANCER
+tp     1/1       0/0      true
+```
+
+Passez alors directement à la section 3.
+
+Si la liste est vide, créez le cluster vous-mêmes :
 
 ```bash
 k3d cluster create tp --port "8000:80@loadbalancer"
@@ -114,7 +129,7 @@ k3d cluster create tp --port "8000:80@loadbalancer"
 | Élément | Rôle |
 |---|---|
 | `cluster create tp` | crée un cluster nommé `tp` |
-| `--port "8000:80@loadbalancer"` | ouvre la porte d'entrée du cluster sur le port 8000. **Elle ne servira qu'au TP4** (Ingress), mais elle doit être prévue dès la création |
+| `--port "8000:80@loadbalancer"` | ouvre la porte d'entrée du cluster sur le port 8000. **Elle ne servira qu'au TP04** (Ingress), mais elle doit être prévue dès la création |
 
 La commande prend environ 30 secondes. Elle se termine par les lignes suivantes :
 
@@ -123,8 +138,6 @@ INFO[0032] Cluster 'tp' created successfully!
 INFO[0032] You can now use it like this:
 kubectl cluster-info
 ```
-
-Passez maintenant à la section 3.
 
 ## ✅ 3 — Vérifier le cluster (identique pour les deux modes)
 

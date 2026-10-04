@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Prépare les sessions cloud AVANT la formation (la veille) :
 #   1. crée le cluster k3d "tp" de chaque session (s'il n'existe pas) ;
-#   2. pré-télécharge dans le Docker de la session les images du TP01 ;
-#   3. importe dans le cluster les images des TPs Kubernetes (pas de téléchargement en classe).
+#   2. importe dans le cluster les images des TPs Kubernetes (pas de téléchargement en classe).
+# Les images du TP01 ne sont PAS pré-téléchargées dans le Docker de la session : le
+# téléchargement (et ses couches "Already exists") fait partie de ce TP.
 # Les sessions sont traitées UNE PAR UNE : créer 6 clusters en même temps sature un VPS 4 vCores.
 #
 # Usage (sur le VPS, dans infra/) :
@@ -14,12 +15,6 @@ set -euo pipefail
 SESSIONS=("${@:-1 2 3 4 5 6}")
 SESSIONS=(${SESSIONS[*]})
 
-# TP01 : images utilisées avec docker run / docker build (dans le Docker de la session)
-DOCKER_IMAGES=(
-  ghcr.io/bngams/kube-vote:1.0
-  ghcr.io/bngams/kube-vote:2.0
-  python:3.11-slim
-)
 # TP02 et suivants : images lancées dans le cluster (importées dans k3d)
 CLUSTER_IMAGES=(
   ghcr.io/bngams/kube-vote:1.0
@@ -39,7 +34,6 @@ for n in "${SESSIONS[@]}"; do
   fi
   docker exec -i \
     -e RESET="${RESET:-0}" \
-    -e DOCKER_IMAGES="${DOCKER_IMAGES[*]}" \
     -e CLUSTER_IMAGES="${CLUSTER_IMAGES[*]}" \
     "student-$n" bash -l <<'EOS'
 set -euo pipefail
@@ -56,13 +50,12 @@ else
   k3d cluster create tp --port "8000:80@loadbalancer" >/dev/null 2>&1 && echo "cluster tp : créé"
 fi
 kubectl wait --for=condition=Ready node --all --timeout=120s >/dev/null && echo "nœud Ready"
-for img in $DOCKER_IMAGES $CLUSTER_IMAGES; do docker pull -q "$img" >/dev/null; done
-echo "images téléchargées dans le Docker de la session"
+for img in $CLUSTER_IMAGES; do docker pull -q "$img" >/dev/null; done
 k3d image import $CLUSTER_IMAGES -c tp >/dev/null 2>&1 && echo "images importées dans le cluster"
-# les images seulement utiles au cluster n'encombrent pas le docker images du TP01
-for img in $CLUSTER_IMAGES; do
-  case " $DOCKER_IMAGES " in *" $img "*) ;; *) docker rmi -f "$img" >/dev/null 2>&1 || true ;; esac
-done
-docker images --format '{{.Repository}}:{{.Tag}}' | sort | tr '\n' ' '; echo
+# on les retire du Docker de la session : le TP01 doit les télécharger lui-même
+docker rmi -f $CLUSTER_IMAGES >/dev/null 2>&1 || true
+docker image prune -f >/dev/null
+echo "docker images : $(docker images --format '{{.Repository}}:{{.Tag}}' | sort | tr '\n' ' ')"
+echo "dans le cluster : $(docker exec k3d-tp-server-0 crictl images -q | wc -l) images" 
 EOS
 done
