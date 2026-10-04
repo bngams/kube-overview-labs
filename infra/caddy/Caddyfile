@@ -1,0 +1,58 @@
+# Caddyfile — reverse proxy + TLS WILDCARD via Cloudflare DNS-01 (cf. 2606-gitops/infra-formateur).
+# Sous-domaines à UN SEUL niveau (lab-kube1.{$DOMAIN}) : couverts par l'Universal SSL gratuit.
+
+(cf_tls) {
+	tls {
+		dns cloudflare {$CLOUDFLARE_API_TOKEN}
+	}
+}
+
+(proxy_slash) {
+	@proxy_noslash path_regexp ^/(abs)?proxy/[0-9]+$
+	redir @proxy_noslash {path}/{?query} 308
+}
+
+# Une session par binôme => son code-server (13337), joint via dind-N (réseau partagé).
+lab-kube1.{$DOMAIN} {
+	import cf_tls
+	import proxy_slash
+	reverse_proxy dind-1:13337
+}
+lab-kube2.{$DOMAIN} {
+	import cf_tls
+	import proxy_slash
+	reverse_proxy dind-2:13337
+}
+lab-kube3.{$DOMAIN} {
+	import cf_tls
+	import proxy_slash
+	reverse_proxy dind-3:13337
+}
+lab-kube4.{$DOMAIN} {
+	import cf_tls
+	import proxy_slash
+	reverse_proxy dind-4:13337
+}
+lab-kube5.{$DOMAIN} {
+	import cf_tls
+	import proxy_slash
+	reverse_proxy dind-5:13337
+}
+lab-kube6.{$DOMAIN} {
+	import cf_tls
+	import proxy_slash
+	reverse_proxy dind-6:13337
+}
+
+# Apps des binômes : lab-kubeN-PORT.{$DOMAIN} => code-server de la session N, qui vérifie
+# la connexion puis relaie vers localhost:PORT (option --proxy-domain). App servie à la racine.
+*.{$DOMAIN} {
+	import cf_tls
+	@labport header_regexp lp Host ^lab-kube([0-9]+)-[0-9]+\.
+	handle @labport {
+		reverse_proxy dind-{re.lp.1}:13337
+	}
+	handle {
+		respond "Not found" 404
+	}
+}

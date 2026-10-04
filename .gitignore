@@ -1,0 +1,4 @@
+# Supports de cours d'exemple : contiennent des identifiants -> jamais dans le dépôt public
+example cours/
+.DS_Store
+.env

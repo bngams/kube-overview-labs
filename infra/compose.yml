@@ -1,0 +1,144 @@
+# =============================================================================
+# infra — environnement "cloud" du cours Kubernetes (VPS 4 vCores / 16 Go)
+# =============================================================================
+# 6 sessions (1 par binôme) : code-server (VS Code navigateur) + DinD isolé,
+# dans lequel k3d crée le cluster Kubernetes du binôme. Caddy devant (TLS wildcard).
+#
+#   cp .env.example .env   # DOMAIN, CLOUDFLARE_API_TOKEN, mots de passe
+#   docker compose up -d
+#
+# Accès : https://lab-kube1.DOMAIN … lab-kube6.DOMAIN
+# Apps  : https://lab-kubeN-<port>.DOMAIN  (ex: lab-kube3-8080 = kubectl port-forward … 8080)
+# Adapté de 2606-gitops/infra-formateur (même principe, outils Kubernetes à la place de Terraform/Ansible).
+# =============================================================================
+
+x-student-box: &student-box
+  build: ./student-box
+  image: kube-student:local
+  restart: unless-stopped
+  mem_limit: 768m
+  # PAS de `networks:` : le poste PARTAGE la pile réseau de son DinD (network_mode),
+  # donc l'API du cluster k3d et les `kubectl port-forward` sont sur localhost.
+
+x-dind: &dind
+  image: docker:27-dind
+  restart: unless-stopped
+  privileged: true            # requis par DinD (et k3s dedans) — ISOLÉ par binôme, jamais le socket hôte
+  environment:
+    DOCKER_TLS_CERTDIR: ""    # écoute en clair sur 2375 (réseau interne uniquement)
+  command: ["--host=tcp://0.0.0.0:2375", "--host=unix:///var/run/docker.sock"]
+  # k3s (~600 Mo) + la voting app complète (~600 Mo) + marge
+  mem_limit: 2560m
+  networks: [lab]
+
+services:
+
+  caddy:
+    build: ./caddy
+    image: caddy-cf:local
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN:?DOMAIN manquant dans .env}
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN:?CLOUDFLARE_API_TOKEN manquant dans .env}
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [lab]
+
+  # =========================== SESSIONS (1 par binôme) =======================
+
+  student-1:
+    <<: *student-box
+    container_name: student-1
+    environment:
+      - PASSWORD=${S1_PASSWORD:?S1_PASSWORD manquant}
+      - PROXY_DOMAIN=lab-kube1-{{port}}.${DOMAIN}
+      - DOCKER_HOST=tcp://localhost:2375
+    network_mode: "service:dind-1"
+    volumes: [home-1:/home/student]
+    depends_on: [dind-1]
+  dind-1: { <<: *dind, container_name: dind-1, volumes: [home-1:/home/student, docker-1:/var/lib/docker] }
+
+  student-2:
+    <<: *student-box
+    container_name: student-2
+    environment:
+      - PASSWORD=${S2_PASSWORD:?S2_PASSWORD manquant}
+      - PROXY_DOMAIN=lab-kube2-{{port}}.${DOMAIN}
+      - DOCKER_HOST=tcp://localhost:2375
+    network_mode: "service:dind-2"
+    volumes: [home-2:/home/student]
+    depends_on: [dind-2]
+  dind-2: { <<: *dind, container_name: dind-2, volumes: [home-2:/home/student, docker-2:/var/lib/docker] }
+
+  student-3:
+    <<: *student-box
+    container_name: student-3
+    environment:
+      - PASSWORD=${S3_PASSWORD:?S3_PASSWORD manquant}
+      - PROXY_DOMAIN=lab-kube3-{{port}}.${DOMAIN}
+      - DOCKER_HOST=tcp://localhost:2375
+    network_mode: "service:dind-3"
+    volumes: [home-3:/home/student]
+    depends_on: [dind-3]
+  dind-3: { <<: *dind, container_name: dind-3, volumes: [home-3:/home/student, docker-3:/var/lib/docker] }
+
+  student-4:
+    <<: *student-box
+    container_name: student-4
+    environment:
+      - PASSWORD=${S4_PASSWORD:?S4_PASSWORD manquant}
+      - PROXY_DOMAIN=lab-kube4-{{port}}.${DOMAIN}
+      - DOCKER_HOST=tcp://localhost:2375
+    network_mode: "service:dind-4"
+    volumes: [home-4:/home/student]
+    depends_on: [dind-4]
+  dind-4: { <<: *dind, container_name: dind-4, volumes: [home-4:/home/student, docker-4:/var/lib/docker] }
+
+  student-5:
+    <<: *student-box
+    container_name: student-5
+    environment:
+      - PASSWORD=${S5_PASSWORD:?S5_PASSWORD manquant}
+      - PROXY_DOMAIN=lab-kube5-{{port}}.${DOMAIN}
+      - DOCKER_HOST=tcp://localhost:2375
+    network_mode: "service:dind-5"
+    volumes: [home-5:/home/student]
+    depends_on: [dind-5]
+  dind-5: { <<: *dind, container_name: dind-5, volumes: [home-5:/home/student, docker-5:/var/lib/docker] }
+
+  student-6:
+    <<: *student-box
+    container_name: student-6
+    environment:
+      - PASSWORD=${S6_PASSWORD:?S6_PASSWORD manquant}
+      - PROXY_DOMAIN=lab-kube6-{{port}}.${DOMAIN}
+      - DOCKER_HOST=tcp://localhost:2375
+    network_mode: "service:dind-6"
+    volumes: [home-6:/home/student]
+    depends_on: [dind-6]
+  dind-6: { <<: *dind, container_name: dind-6, volumes: [home-6:/home/student, docker-6:/var/lib/docker] }
+
+networks:
+  lab:
+    name: lab-kube
+
+volumes:
+  caddy_data:
+  caddy_config:
+  home-1:
+  docker-1:
+  home-2:
+  docker-2:
+  home-3:
+  docker-3:
+  home-4:
+  docker-4:
+  home-5:
+  docker-5:
+  home-6:
+  docker-6:
