@@ -56,7 +56,9 @@ vote-fc57495c-5rgkn   1/1     Running   0          1h    10.244.0.3   minikube
 vote-fc57495c-8qth4   1/1     Running   0          1h    10.244.0.5   minikube
 ```
 
-Supprimez le premier pod de **votre** liste, puis regardez de nouveau les adresses :
+Cet exemple vient du mode local. En mode cloud, le nœud s'appelle `k3d-tp-server-0` et les adresses commencent par `10.42.`.
+
+Supprimez le premier pod de **votre** liste, en remplaçant le nom ci-dessous par celui affiché chez vous (seule la fin change), puis regardez de nouveau les adresses :
 
 ```bash
 kubectl delete pod vote-fc57495c-4twgg
@@ -76,7 +78,7 @@ Le pod remplaçant a une **nouvelle adresse** (`10.244.0.6`). Un autre morceau d
 
 ## 🏷️ 2 — Le Service : une adresse stable
 
-Un **Service** est cet intermédiaire. Il porte un **nom** (par exemple `vote`) et une **adresse fixe**, qui ne changent jamais. Il repère les pods à servir grâce à leur **étiquette**, exactement comme le Deployment, et répartit les requêtes entre eux.
+Un **Service** est cet intermédiaire. Il porte un **nom** (par exemple `vote`) et une **adresse fixe**, qui ne changent pas tant que le Service existe. Il repère les pods à servir grâce à leur **étiquette**, exactement comme le Deployment, et répartit les requêtes entre eux.
 
 ```mermaid
 flowchart LR
@@ -96,7 +98,7 @@ Les champs d'un Service se lisent ainsi :
 | `spec.ports[].port` | le port sur lequel le Service écoute |
 | `spec.ports[].targetPort` | le port des pods vers lequel il renvoie les requêtes (le `containerPort` du Deployment) |
 
-🚧 **À compléter :** dans l'explorateur de VS Code, créez un fichier `vote.svc.yml` dans `TP02` (icône **Nouveau fichier**, 📄+), collez-y le contenu suivant, remplacez chaque `# TODO` et tout le texte qui le suit sur la ligne, puis enregistrez.
+🚧 **À compléter :** dans l'explorateur de VS Code, créez un fichier `vote.svc.yml` dans le dossier `tp02` (icône **Nouveau fichier**, 📄+), collez-y le contenu suivant, remplacez chaque `# TODO` et tout le texte qui le suit sur la ligne, puis enregistrez.
 
 ```yaml
 # Une adresse stable, "vote", qui répartit les visiteurs entre tous les pods portant l'étiquette app: vote
@@ -128,7 +130,7 @@ kubernetes   ClusterIP   10.96.0.1      <none>        443/TCP   2h
 vote         ClusterIP   10.105.13.80   <none>        80/TCP    0s
 ```
 
-Votre Service `vote` a reçu une adresse fixe dans la colonne `CLUSTER-IP`. Le type `ClusterIP` signifie qu'elle n'est joignable **qu'à l'intérieur du cluster**. Le Service `kubernetes` existait déjà : c'est celui de Kubernetes lui-même, n'y touchez pas.
+Votre Service `vote` a reçu une adresse fixe dans la colonne `CLUSTER-IP` (en mode cloud, elle commence par `10.43.`). La colonne `PORT(S)` rappelle le port d'écoute ; `TCP` est le protocole de transport utilisé, vous pouvez l'ignorer. Le type `ClusterIP` signifie qu'elle n'est joignable **qu'à l'intérieur du cluster**. Le Service `kubernetes` existait déjà : c'est celui de Kubernetes lui-même, n'y touchez pas.
 
 Demandez le détail du Service pour voir à qui il transmet les requêtes :
 
@@ -146,7 +148,7 @@ Endpoints:                10.244.0.3:80,10.244.0.6:80,10.244.0.5:80
 
 La ligne `Endpoints` liste les adresses des **3 pods** actuellement servis. Kubernetes la tient à jour tout seul : quand un pod est remplacé, son ancienne adresse disparaît de la liste et la nouvelle y entre.
 
-> ⚠️ **`Endpoints` est vide (`<none>`) ?** Le `selector` ne correspond à aucun pod : vérifiez qu'il indique bien `app: vote`, enregistrez, puis relancez `kubectl apply -f vote.svc.yml`.
+> ⚠️ **`Endpoints` est vide (`<none>`) ?** Le `selector` ne correspond à aucun pod : vérifiez qu'il indique bien `app: vote`, enregistrez, puis relancez `kubectl apply -f vote.svc.yml`. Si c'est le `apply` lui-même qui échoue avec un message mentionnant `name`, `selector` ou `port`, une valeur a été laissée vide en retirant le `# TODO` : complétez-la.
 >
 > 📖 [Les Services, documentation officielle](https://kubernetes.io/fr/docs/concepts/services-networking/service/)
 
@@ -165,7 +167,7 @@ kubectl run test --rm -i --restart=Never --image=ghcr.io/bngams/kube-busybox:1.3
 | `--image=…kube-busybox:1.37` | une toute petite image qui contient des outils de base, dont `wget` pour appeler une adresse web |
 | `-- sh -c "for i in …; do wget …; done"` | la commande lancée dans le pod : appeler 6 fois `http://vote/healthz` |
 
-Le terminal affiche 6 réponses, puis la suppression du pod de test :
+Sous PowerShell, collez bien la commande **sur une seule ligne**. Le terminal affiche 6 réponses, puis la suppression du pod de test (si une ligne d'avertissement s'affiche en plus au premier lancement, ignorez-la : seules les 6 réponses comptent) :
 
 ```
 {"hostname":"vote-fc57495c-5rgkn","status":"ok","version":"1.0"}
@@ -231,11 +233,11 @@ redis-8484fcb6dd-pw4k8    1/1     Running   0          45s
 result-69d74d779c-65bp4   1/1     Running   0          30s
 vote-fc57495c-5rgkn       1/1     Running   0          1h
 vote-fc57495c-8qth4       1/1     Running   0          1h
-vote-fc57495c-gfqkp       1/1     Running   0          10m
+vote-fc57495c-gfqkp       1/1     Running   0          12m
 worker-75ccfbcdb5-b99jz   1/1     Running   0          35s
 ```
 
-> 💡 **`worker` affiche `RESTARTS 1` ou `2` ?** C'est normal s'il a démarré avant que la base soit prête : il a planté, Kubernetes l'a relancé, et il a fini par trouver `db`. Les morceaux d'une application n'ont pas besoin de démarrer dans un ordre précis : la réconciliation finit par tout remettre d'aplomb.
+> 💡 **`worker` ou `result` affichent des redémarrages (`RESTARTS 1`) ?** Pas d'inquiétude : s'ils ont perdu le contact avec la base pendant son démarrage, ils ont planté, Kubernetes les a relancés, et ils ont fini par la trouver. Les morceaux d'une application n'ont pas besoin de démarrer dans un ordre précis : la réconciliation finit par tout remettre d'aplomb.
 
 Listez maintenant les Services :
 
@@ -249,14 +251,14 @@ db           ClusterIP   10.104.25.144    <none>        5432/TCP   1m
 kubernetes   ClusterIP   10.96.0.1        <none>        443/TCP    2h
 redis        ClusterIP   10.99.224.249    <none>        6379/TCP   1m
 result       ClusterIP   10.108.244.243   <none>        80/TCP     1m
-vote         ClusterIP   10.105.13.80     <none>        80/TCP     15m
+vote         ClusterIP   10.105.13.80     <none>        80/TCP     8m
 ```
 
 > ⚖️ **Un raccourci assumé.** Le fichier `db.yml` contient le mot de passe de la base **en clair** (`postgres`). C'est une mauvaise pratique, gardée volontairement pour l'instant : au TP05, vous le rangerez dans un **Secret**. Autre simplification : la base ne garde pas ses données si son pod est remplacé. En production, on lui donnerait un **volume persistant**.
 
 ## 🗳️ 5 — Voter pour de vrai
 
-Toute la chaîne est en place : on peut enfin voter ! Pour l'instant, les Services ne sont joignables que de l'intérieur du cluster. On utilise donc encore des tunnels, mais cette fois vers les **Services**, et non plus vers un Deployment.
+Toute la chaîne est en place : on peut enfin voter ! Pour l'instant, les Services ne sont joignables que de l'intérieur du cluster. On utilise donc encore des tunnels, un par page (le vote et les résultats), mais cette fois vers les **Services**, et non plus vers un Deployment.
 
 Ouvrez un **terminal 2** (icône **Scinder le terminal**) pour la page de vote :
 
@@ -277,15 +279,15 @@ Ouvrez les deux pages, côte à côte si possible (en mode cloud, remplacez `N` 
 | Vote | `http://localhost:8080` | `https://lab-kubeN-8080.deltavia.com` |
 | Résultats | `http://localhost:8081` | `https://lab-kubeN-8081.deltavia.com` |
 
-**Votez !** Cliquez sur « Chats » ou « Chiens » : une coche ✓ confirme votre vote, et la page des résultats se met à jour **en direct**. La page des résultats, qui n'a pas été traduite, affiche « Cats » et « Dogs » : ce sont les mêmes options A et B. Votre binôme peut voter aussi, depuis son propre navigateur ou son téléphone. Chaque navigateur compte pour un votant, qui peut changer d'avis.
+**Votez !** Cliquez sur « Chats » ou « Chiens » : une coche ✓ confirme votre vote, et la page des résultats se met à jour **en direct**. La page des résultats, qui n'a pas été traduite, affiche « Cats » et « Dogs » : ce sont les mêmes options A et B. Chaque navigateur compte pour un votant, qui peut changer d'avis. En mode cloud, votre binôme peut aussi voter depuis son propre navigateur ou son téléphone, avec le mot de passe de la session ; en mode local, les adresses `localhost` ne fonctionnent que sur le poste du pilote.
 
-> 🧠 **Ce qui vient de se passer.** Votre clic a traversé tout le cluster : `vote` a déposé le vote dans `redis`, `worker` l'a sorti de la file et enregistré dans `db`, et `result` l'a lu dans la base pour l'afficher. Cinq programmes écrits dans quatre technologies différentes (Python, .NET, Node.js, plus Redis et PostgreSQL), qui coopèrent uniquement grâce aux **noms de Services**.
+> 🧠 **Ce qui vient de se passer.** Votre clic a traversé tout le cluster : `vote` a déposé le vote dans `redis`, `worker` l'a sorti de la file et enregistré dans `db`, et `result` l'a lu dans la base pour l'afficher. Cinq programmes, écrits dans trois langages (Python, .NET, Node.js) auxquels s'ajoutent Redis et PostgreSQL, qui coopèrent uniquement grâce aux **noms de Services**.
 
 Rechargez maintenant plusieurs fois la page de **vote**, en regardant la ligne « Servi par » : c'est encore **toujours le même pod**. Un `port-forward`, même vers un Service, choisit un seul pod au démarrage. Pour voir la répartition depuis votre navigateur, il faut une vraie porte d'entrée.
 
 ## 🚪 6 — L'Ingress : la porte d'entrée du cluster
 
-Un **Ingress** est la porte d'entrée de votre application depuis l'extérieur. Il reçoit les visites web et les **aiguille** vers le bon Service, selon l'adresse demandée. Il ne fonctionne pas tout seul : un programme, le **contrôleur d'Ingress**, applique ses règles. Votre cluster en a un, mais pas le même selon le mode.
+Un **Ingress** est un ensemble de **règles d'aiguillage** pour les visites web venues de l'extérieur : « telle adresse => tel Service ». Il ne fonctionne pas tout seul : un programme, le **contrôleur d'Ingress**, reçoit réellement les visites et applique ces règles. Ensemble, ils forment la porte d'entrée de votre application. Votre cluster en a un, mais pas le même selon le mode.
 
 ```mermaid
 flowchart LR
@@ -305,7 +307,7 @@ flowchart LR
 
 En mode cloud, passez directement à l'étape 2.
 
-En mode local, minikube fournit le contrôleur NGINX sous forme de module à activer. Commencez par libérer le terminal 2 : cliquez dedans, faites **Ctrl+C** pour arrêter le tunnel de la page de vote. Puis, dans le **terminal 1** :
+En mode local, minikube fournit le contrôleur NGINX sous forme de module à activer. Dans le **terminal 1** :
 
 ```bash
 minikube addons enable ingress
@@ -316,6 +318,8 @@ L'activation prend environ une minute. La commande se termine par :
 ```
 The 'ingress' addon is enabled
 ```
+
+Si minikube affiche aussi un message vous invitant à lancer `minikube tunnel`, **ignorez-le** : on utilisera à la place un tunnel `kubectl`, comme d'habitude.
 
 Attendez ensuite que le contrôleur soit prêt. Sinon, l'étape 2 échouera avec un message `failed calling webhook` :
 
@@ -345,7 +349,7 @@ Un Ingress se compose de **règles** : « les visites qui arrivent sur tel chemi
 | `backend.service.name` | le Service vers lequel envoyer ces visites |
 | `backend.service.port.number` | le port de ce Service (le `port` de `vote.svc.yml`) |
 
-🚧 **À compléter :** créez un fichier `vote.ingress.yml` dans `TP02`, collez-y le contenu suivant, remplacez les `# TODO`, puis enregistrez.
+🚧 **À compléter :** créez un fichier `vote.ingress.yml` dans le dossier `tp02`, collez-y le contenu suivant, remplacez les `# TODO`, puis enregistrez.
 
 ```yaml
 # La porte d'entrée du cluster : toutes les requêtes reçues sur "/" sont envoyées au Service vote
@@ -373,19 +377,22 @@ kubectl apply -f vote.ingress.yml
 kubectl get ingress
 ```
 
+Le terminal confirme la création, puis affiche l'Ingress. Voici le résultat dans chacun des deux modes :
+
 ```
 ingress.networking.k8s.io/vote created
-NAME   CLASS     HOSTS   ADDRESS      PORTS   AGE
-vote   traefik   *       172.19.0.2   80      10s
+NAME   CLASS     HOSTS   ADDRESS        PORTS   AGE
+vote   nginx     *       192.168.49.2   80      30s     <- en mode local
+vote   traefik   *       172.19.0.2     80      10s     <- en mode cloud
 ```
 
-La colonne `CLASS` indique le contrôleur qui a pris en charge votre Ingress : `traefik` en mode cloud, `nginx` en mode local. Vous n'avez pas eu à le préciser : chaque cluster a un contrôleur **par défaut**. La colonne `ADDRESS` peut rester vide quelques instants en mode local.
+La colonne `CLASS` indique le contrôleur qui a pris en charge votre Ingress. Vous n'avez pas eu à le préciser : chaque cluster a un contrôleur **par défaut**. La colonne `ADDRESS` peut rester vide quelques instants en mode local.
 
 ### Étape 3 — Entrer par la porte
 
-En **mode cloud**, la porte d'entrée est déjà ouverte : passez à l'ouverture de la page ci-dessous.
+En **mode cloud**, la porte d'entrée est déjà ouverte : passez à l'ouverture de la page ci-dessous. Le tunnel du terminal 2 (page de vote, port 8080) peut continuer à tourner.
 
-En **mode local**, il faut un dernier tunnel, vers le contrôleur NGINX. Lancez-le dans le **terminal 2** :
+En **mode local**, il faut un dernier tunnel, vers le contrôleur NGINX. Réutilisez le **terminal 2** : cliquez dedans, faites **Ctrl+C** pour arrêter le tunnel de la page de vote (le port 8080 ne répondra plus, c'est normal), puis lancez :
 
 ```bash
 kubectl port-forward -n ingress-nginx service/ingress-nginx-controller 8000:80
@@ -398,7 +405,7 @@ Ouvrez maintenant l'application **par la porte d'entrée**, sur le port 8000 :
 | 🅰️ Local | `http://localhost:8000` |
 | 🅱️ Cloud | `https://lab-kubeN-8000.deltavia.com` |
 
-Rechargez la page plusieurs fois en regardant la ligne « Servi par » : **le nom du pod change** ! Cette fois, chaque visite traverse le contrôleur d'Ingress puis le Service, qui répartit réellement les visiteurs entre les 3 réplicas. Le vote fonctionne aussi par cette porte : la page des résultats (port 8081, toujours ouverte dans le terminal 3) continue de se mettre à jour.
+Rechargez la page plusieurs fois en regardant la ligne « Servi par » : **le nom du pod change** ! Cette fois, le contrôleur d'Ingress demande au Service la liste de ses pods, puis répartit lui-même **chaque visite** entre les 3 réplicas, à tour de rôle. Le vote fonctionne aussi par cette porte : la page des résultats (port 8081, toujours ouverte dans le terminal 3) continue de se mettre à jour.
 
 > 💡 **La page des résultats ne passe pas par l'Ingress.** L'application `result` a été écrite pour être servie à la racine d'un site (`/`), et cette place est prise par `vote`. En entreprise, on donne à chaque application son **propre nom de domaine** (`vote.example.com`, `result.example.com`) : un Ingress sait aussi aiguiller selon le nom demandé, grâce au champ `host`. Les sessions de formation n'ont qu'un nom chacune, d'où ce compromis.
 >
@@ -412,17 +419,17 @@ Vous avez rencontré deux des façons d'exposer une application. Voici le paysag
 |---|---|---|
 | Service `ClusterIP` (par défaut) | l'intérieur du cluster seulement | faire communiquer les morceaux d'une application (`redis`, `db`) |
 | Service `NodePort` | l'extérieur, sur un port (30000 à 32767) de chaque nœud | tests, petits environnements |
-| Service `LoadBalancer` | l'extérieur, via un répartiteur de charge fourni par le cloud (une adresse IP publique) | exposer un service non web, ou un contrôleur d'Ingress |
+| Service `LoadBalancer` | l'extérieur, via un répartiteur de charge fourni par le cloud (une adresse externe, souvent publique) | exposer un service non web, ou un contrôleur d'Ingress. En mode cloud, Traefik est justement exposé ainsi : c'est vers lui que pointe l'option `--port "8000:80@loadbalancer"` du TP00 |
 | **Ingress** | l'extérieur, en HTTP/HTTPS, avec des règles par nom et par chemin | le cas le plus courant pour les sites et les API web |
 
-> 🗣️ **En réunion projet.** « *Il faut ajouter une règle d'Ingress* » signifie qu'on veut rendre une application (ou une nouvelle adresse) accessible depuis l'extérieur. C'est aussi au niveau de l'Ingress qu'on installe généralement les **certificats HTTPS** et qu'on branche les noms de domaine. Vous entendrez peut-être parler de **Gateway API** : c'est le successeur de l'Ingress, plus riche, qui s'impose progressivement dans les nouveaux projets.
+> 🗣️ **En réunion projet.** « *Il faut ajouter une règle d'Ingress* » signifie qu'on veut rendre une application (ou une nouvelle adresse) accessible depuis l'extérieur. C'est aussi au niveau de l'Ingress qu'on installe généralement les **certificats HTTPS** et qu'on branche les noms de domaine. Vous entendrez sûrement parler de **Gateway API** : c'est le successeur de l'Ingress, plus riche. L'API Ingress n'évolue plus, et le contrôleur NGINX historique (celui du mode local) n'est plus maintenu par le projet Kubernetes depuis 2026 : les nouveaux projets partent de plus en plus sur Gateway API. Les notions restent les mêmes : des règles d'aiguillage et un contrôleur qui les applique.
 
 ## 🔵 Pour aller plus loin
 
 Ces pistes sont facultatives.
 
 - **Le nom complet d'un Service :** relancez le pod de test de la section 3 en remplaçant `http://vote/healthz` par `http://vote.default.svc.cluster.local/healthz`. C'est le nom complet : `vote` (le Service), `default` (son namespace), puis le suffixe du cluster. Le nom court `vote` ne fonctionne que depuis le même namespace.
-- **Le Service suit les pods en direct :** dans un terminal, lancez `kubectl get endpointslices -l kubernetes.io/service-name=vote --watch`, puis supprimez un pod `vote` depuis un autre terminal. La liste des adresses change sous vos yeux.
+- **Le Service suit les pods en direct :** ouvrez un terminal 4 (**Scinder le terminal**) et lancez-y `kubectl get endpointslices -l kubernetes.io/service-name=vote --watch`, puis supprimez un pod `vote` depuis le terminal 1. La liste des adresses change sous vos yeux.
 - **Les logs du worker :** `kubectl logs deployment/worker` affiche une ligne `Processing vote for 'a' by '…'` pour chaque vote traité.
 - **Dans la base :** `kubectl exec deployment/db -- psql -U postgres -c "select vote, count(*) from votes group by vote"` interroge directement PostgreSQL. `kubectl exec` lance une commande **dans** un conteneur, comme `docker exec` au TP01.
 - **Mode cloud uniquement :** dans `k9s`, tapez `:svc` puis Entrée pour lister les Services, et `:ing` pour les Ingress.
