@@ -112,6 +112,23 @@ docker compose down        # arrête tout (garde homes, clusters et certificats)
 docker compose down -v     # supprime aussi les volumes
 ```
 
-## Validé en local
+## Validé sur le VPS (04/10/2026)
 
-Le scénario complet d'une session (sans Caddy ni Cloudflare) a été testé sur Docker Desktop : `docker compose --env-file .env.example up -d dind-1 student-1`, `k3d cluster create` dans la session, TP2 complet, accès à l'app via le proxy code-server (`Host: lab-kube1-8080…`). Le routage Caddy/Cloudflare, lui, est repris tel quel du cours gitops et reste à valider sur le VPS.
+Les tests ont été faits sur un VPS 4 vCores / 15 Go (Debian, Docker 29.8), avec les sessions 1 à 3 démarrées.
+
+| Vérification | Résultat |
+|---|---|
+| `cloudflare-dns.sh` | 24 enregistrements créés |
+| Caddy, DNS-01 | certificat `*.deltavia.com` obtenu en ~10 s |
+| `https://lab-kube1…3.deltavia.com` | page de connexion code-server (302 vers `/login`) |
+| `k3d cluster create` × 3 en parallèle | `Ready` en moins de 10 s chacun |
+| TP02 × 3 en parallèle (pull ghcr réel) | pods `Running` en ~25 s |
+| `https://lab-kube1-8080.deltavia.com` après connexion | page `vote`, CSS et `/healthz` OK |
+| Mémoire au repos (k3s + vote) | 1,0 à 1,4 Go par dind, 70 à 120 Mo par code-server |
+| CPU au repos | ~15 % d'un cœur par session |
+
+> ⚠️ **Création des clusters :** la charge est montée à 8,6 (sur 4 cœurs) pendant 3 créations simultanées. Pour 6 binômes, **préchauffez la veille** (section 3).
+>
+> ℹ️ Le conteneur Caddy s'appelle `infra-caddy-1` (`docker logs infra-caddy-1`).
+>
+> ⚠️ Ce VPS héberge aussi l'infra du cours gitops (`/var/www/gitops-lab`) : les deux utilisent les ports 80/443, **une seule à la fois**.
