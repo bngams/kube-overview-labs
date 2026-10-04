@@ -1,6 +1,6 @@
 # 06 — Mettre à jour et réparer
 
-> **Scénario à réaliser en binôme.** L'équipe de développement livre deux nouvelles versions de `vote` : une **v2** avec un nouveau design, puis une **v3**… qui contient un bug. Vous allez déployer la v2 **sans coupure**, voir la v3 planter, **diagnostiquer** la panne comme le ferait une équipe d'exploitation, **revenir en arrière** en une commande, puis protéger l'application avec des **sondes de santé** pour que la prochaine erreur ne touche plus les utilisateurs. Les blocs marqués `# TODO` sont à compléter vous-mêmes. Le dossier [`solution/`](solution/) contient la réponse, à n'ouvrir qu'en cas de blocage 😉.
+> **Scénario à réaliser en binôme.** L'équipe de développement livre deux nouvelles versions de `vote` : une **v2** avec un nouveau design, puis une **v3**… qui exige un réglage que personne n'a pensé à livrer. Vous allez déployer la v2 **sans coupure**, voir la v3 planter, **diagnostiquer** la panne comme le ferait une équipe d'exploitation, **revenir en arrière** en une commande, puis protéger l'application avec des **sondes de santé** pour que la prochaine erreur ne touche plus les utilisateurs. Les blocs marqués `# TODO` sont à compléter vous-mêmes. Le dossier [`solution/`](solution/) contient la réponse, à n'ouvrir qu'en cas de blocage 😉.
 >
 > 🎯 **Niveau :** débutant. On suppose le [TP05](../05-configuration/README.md) terminé : l'application complète tourne, `vote` lit ses réglages dans la ConfigMap `vote-config`.
 >
@@ -15,7 +15,7 @@
 
 ## 📁 Point de départ
 
-On continue dans le dossier `tp02`, ouvert dans VS Code. Ouvrez les mêmes terminaux qu'au TP05 :
+On continue dans le dossier `tp02`, ouvert dans VS Code. Si le tunnel des résultats du TP05 tourne encore dans le terminal 3, arrêtez-le (Ctrl+C) : ce terminal va servir à la surveillance. Voici le rôle de chaque terminal :
 
 | Terminal | Rôle | 🅰️ Local | 🅱️ Cloud |
 |---|---|---|---|
@@ -38,12 +38,12 @@ Ouvrez la page de vote : le badge en haut à droite indique **v1.0**.
 
 ## 🚀 1 — Déployer la v2 sans coupure
 
-La v2 apporte un nouveau design. Déployer une nouvelle version, c'est **changer l'image** dans l'état souhaité.
+La v2 apporte un nouveau design. Déployer une nouvelle version, c'est **changer l'image** dans l'état souhaité, plus précisément dans le **modèle de pod** (le bloc `template` du Deployment, à partir duquel chaque pod est fabriqué).
 
-🚧 **À compléter :** dans `vote.deploy.yml`, repérez la ligne `image: ghcr.io/bngams/kube-vote:1.0` et changez **seulement la version** à la fin, puis enregistrez.
+🚧 **À compléter :** dans `vote.deploy.yml`, repérez la ligne `image: ghcr.io/bngams/kube-vote:1.0` et changez **seulement les chiffres de la fin** pour passer en version 2.0, puis enregistrez.
 
 ```yaml
-          image: ghcr.io/bngams/kube-vote:# TODO : la nouvelle version, 2.0
+          image: ghcr.io/bngams/kube-vote:1.0    # TODO : seule la version, après les deux-points, change
 ```
 
 Appliquez, puis **rechargez sans arrêt la page de vote** pendant une quinzaine de secondes en regardant le badge :
@@ -77,11 +77,11 @@ kubectl rollout status deployment vote
 deployment "vote" successfully rolled out
 ```
 
-> 🧠 **La mise à jour progressive** (*rolling update*). Par défaut, Kubernetes crée **un** pod de la nouvelle version, attend qu'il soit prêt, retire **un** pod de l'ancienne, et recommence. Il y a toujours assez de pods pour servir les visiteurs : c'est ce qui permet de livrer en pleine journée, sans « fenêtre de maintenance ». Pendant quelques secondes, les deux versions cohabitent : les équipes de développement doivent en tenir compte (par exemple pour les changements de base de données).
+> 🧠 **La mise à jour progressive** (*rolling update*). Avec 3 réplicas et les réglages par défaut, Kubernetes crée **un** pod de la nouvelle version, attend qu'il soit prêt, retire **un** pod de l'ancienne, et recommence. Il y a toujours assez de pods pour servir les visiteurs : c'est ce qui permet de livrer en pleine journée, sans « fenêtre de maintenance ». Pendant quelques secondes, les deux versions cohabitent : les équipes de développement doivent en tenir compte (par exemple pour les changements de base de données).
 
 ## 📜 2 — L'historique des versions
 
-Au TP03, vous avez vu que chaque modification du modèle de pod créait un nouveau **ReplicaSet**, l'ancien étant gardé à 0 pod. Kubernetes s'en sert comme d'un **historique** :
+Au TP03, vous avez vu que chaque modification du modèle de pod créait un nouveau **ReplicaSet** (le « gardien du nombre » de pods, vu au TP02), l'ancien étant gardé à 0 pod. Kubernetes s'en sert comme d'un **historique** :
 
 ```bash
 kubectl rollout history deployment vote
@@ -97,17 +97,13 @@ REVISION  CHANGE-CAUSE
 5         <none>
 ```
 
-Chaque ligne est une **révision**, c'est-à-dire une version du modèle de pod : celles du TP03 (réservations), du TP05 (ConfigMap) et la v2 que vous venez de déployer. Votre liste peut être plus ou moins longue selon votre parcours ; la dernière ligne est toujours la version en cours. La colonne `CHANGE-CAUSE` est vide : en entreprise, on l'alimente avec une annotation pour savoir **pourquoi** chaque version a été déployée.
+Chaque ligne est une **révision**, c'est-à-dire une version du modèle de pod : celles du TP03 (réservations), du TP05 (ConfigMap, puis `rollout restart`) et la v2 que vous venez de déployer. Votre liste peut être plus ou moins longue selon votre parcours ; la dernière ligne est toujours la version en cours. La colonne `CHANGE-CAUSE` est vide : en entreprise, on l'alimente avec une annotation pour savoir **pourquoi** chaque version a été déployée.
 
 ## 💥 3 — La v3 plante
 
-L'équipe livre maintenant la v3, qui ajoute un titre personnalisable… et un bug. Déployez-la comme la v2.
+L'équipe livre maintenant la v3, qui ajoute un titre personnalisable. Déployez-la comme la v2.
 
-🚧 **À compléter :** dans `vote.deploy.yml`, passez l'image en version `3.0`, enregistrez, puis appliquez.
-
-```yaml
-          image: ghcr.io/bngams/kube-vote:# TODO : la version 3.0
-```
+🚧 **À compléter :** dans `vote.deploy.yml`, passez l'image en version `3.0` (même ligne, seuls les chiffres de la fin changent), enregistrez, puis appliquez.
 
 ```bash
 kubectl apply -f vote.deploy.yml
@@ -131,7 +127,7 @@ NAME   READY   UP-TO-DATE   AVAILABLE   AGE
 vote   2/3     2            2           3h
 ```
 
-L'application répond toujours (rechargez la page : **v2.0**), mais il ne reste que **2 pods v2 sur 3** : un pod sain a été retiré ! Gardez ce constat en tête, on y reviendra à la section 5.
+L'application répond toujours (rechargez la page : **v2.0**), mais il ne reste que **2 pods v2 sur 3** : un pod sain a été retiré ! Si vous attendez plus longtemps, il peut même en disparaître un deuxième. Gardez ce constat en tête, on y reviendra à la section 5.
 
 | Statut | Signification |
 |---|---|
@@ -140,7 +136,7 @@ L'application répond toujours (rechargez la page : **v2.0**), mais il ne reste 
 
 ### Diagnostiquer
 
-Face à un pod en échec, on suit toujours la même démarche : **décrire**, puis **lire les logs**. Copiez le nom de **votre** pod en `CrashLoopBackOff`, puis demandez sa description :
+Face à un pod en échec, on suit toujours la même démarche : **décrire**, puis **lire les logs**. Dans les commandes qui suivent, remplacez le nom du pod par celui de **votre** pod en `CrashLoopBackOff` (copiez-le depuis le terminal 3). Demandez d'abord sa description :
 
 ```bash
 kubectl describe pod vote-5587f69d7c-bcqqs
@@ -169,27 +165,32 @@ Et les événements, tout en bas :
 kubectl logs vote-5587f69d7c-bcqqs
 ```
 
-La réponse fait une centaine de lignes. La **fin** n'est pas très parlante :
+Si la réponse est vide (le conteneur vient juste de redémarrer), ajoutez l'option `--previous`, qui affiche les logs du conteneur **précédent**, celui qui vient de planter. Sinon, la réponse fait une centaine de lignes, et la **fin** n'est pas très parlante :
 
 ```
 gunicorn.errors.HaltServer: <HaltServer 'Worker failed to boot.' 3>
 ```
 
-La vraie cause se trouve **plus haut**. Remontez dans le terminal, ou filtrez les lignes qui contiennent `Error` :
+La vraie cause se trouve **plus haut**. Remontez dans le terminal, ou ne gardez que les lignes qui contiennent le mot `KeyError` (une erreur fréquente en Python : « clé introuvable »). Sous Windows (PowerShell) :
 
-| Mode | Commande |
-|---|---|
-| Windows (PowerShell) | `kubectl logs vote-5587f69d7c-bcqqs \| Select-String Error` |
-| macOS, cloud | `kubectl logs vote-5587f69d7c-bcqqs \| grep Error` |
+```bash
+kubectl logs vote-5587f69d7c-bcqqs | Select-String KeyError
+```
+
+Sous macOS et en mode cloud :
+
+```bash
+kubectl logs vote-5587f69d7c-bcqqs | grep KeyError
+```
+
+Le terminal affiche la même ligne, deux fois (une par processus de l'application) :
 
 ```
 KeyError: 'VOTE_TITLE'
-...
+KeyError: 'VOTE_TITLE'
 ```
 
 Voilà le coupable : la v3 attend un réglage `VOTE_TITLE` que personne ne lui a donné. C'est le titre personnalisable annoncé par l'équipe, mais elle a oublié de le dire à l'exploitation.
-
-> 💡 **Astuce : `kubectl logs --previous`.** Quand un conteneur redémarre en boucle, ses logs peuvent être vides au moment où vous les demandez (il vient juste de repartir). `--previous` affiche ceux du conteneur **précédent**, celui qui vient de planter.
 
 > 🗣️ **En réunion projet.** Vous savez maintenant ce que signifie « *le pod est en CrashLoopBackOff* » : l'application plante au démarrage, Kubernetes la relance en boucle. Ce n'est **pas** un problème de Kubernetes, mais de l'application ou de sa configuration. Et la première question à poser est : « *qu'est-ce que disent les logs ?* »
 
@@ -209,6 +210,10 @@ deployment.apps/vote rolled back
 deployment "vote" successfully rolled out
 ```
 
+En mode cloud (et avec les versions récentes de `kubectl`), la première ligne est précédée d'un avertissement : `Warning: resource deployments/vote was previously managed with 'kubectl apply'. Rolling back will not update the kubectl.kubernetes.io/last-applied-configuration annotation…`. Kubernetes vous prévient lui-même du problème expliqué juste après.
+
+> ⚠️ **Une seule fois !** Lancez `kubectl rollout undo` **une seule fois** : un second `undo` reviendrait à la révision d'avant… c'est-à-dire la v3 cassée. En cas de doute, `kubectl rollout history deployment vote` montre où vous en êtes.
+
 Dans le terminal 3, les pods v3 disparaissent et un troisième pod v2 est recréé. Vérifiez :
 
 ```bash
@@ -224,11 +229,7 @@ Retour à 3 pods sains en v2, en quelques secondes.
 
 > ⚠️ **Le fichier ne fait plus foi !** `kubectl rollout undo` a modifié le cluster **sans toucher à votre fichier** : `vote.deploy.yml` indique toujours `3.0`. C'est la même dérive qu'avec `kubectl scale` au TP03. Au prochain `kubectl apply`, la v3 cassée reviendrait.
 
-🚧 **À compléter :** remettez le fichier en cohérence avec le cluster : repassez l'image en version `2.0`, enregistrez, puis appliquez (le terminal répond `configured`, mais rien ne change puisque le cluster est déjà en v2).
-
-```yaml
-          image: ghcr.io/bngams/kube-vote:# TODO : la version qui tourne réellement, 2.0
-```
+🚧 **À compléter :** remettez le fichier en cohérence avec le cluster : repassez l'image en version `2.0`, celle qui tourne réellement, enregistrez, puis appliquez (le terminal répond `configured`, mais rien ne change puisque le cluster est déjà en v2).
 
 ```bash
 kubectl apply -f vote.deploy.yml
@@ -269,7 +270,7 @@ Pour éviter cela, on donne à Kubernetes un moyen de vérifier lui-même la san
               memory: 64Mi
 ```
 
-Comme pour `envFrom` au TP05 : placez le curseur au tout début de la ligne `resources:`, créez des lignes vides au-dessus, puis tapez le bloc en respectant les espaces.
+Comme pour `envFrom` au TP05 : placez le curseur au tout début de la ligne `resources:` (colonne 1), appuyez **dix fois** sur Entrée pour créer dix lignes vides au-dessus, puis tapez les dix lignes du bloc en respectant les espaces. Les commentaires `# <-` et `# toutes les…` sont facultatifs.
 
 Appliquez, puis vérifiez que les sondes sont en place :
 
@@ -309,11 +310,13 @@ NAME   READY   UP-TO-DATE   AVAILABLE   AGE
 vote   3/3     1            3           3h
 ```
 
-Cette fois, **les 3 pods v2 sont intacts** (`3/3`) : le pod v3 n'a jamais répondu à la sonde de *readiness*, il n'a donc jamais été compté comme prêt, et la mise à jour s'est arrêtée là. Les utilisateurs ne voient rien. Il ne reste qu'à revenir en arrière :
+Cette fois, **les 3 pods v2 sont intacts** (`3/3`) : le pod v3 n'a jamais répondu à la sonde de *readiness*, il n'a donc jamais été compté comme prêt, et la mise à jour s'est arrêtée là. Les utilisateurs ne voient rien. Il ne reste qu'à revenir en arrière, une seule fois :
 
 ```bash
 kubectl rollout undo deployment vote
 ```
+
+> ⚠️ **Cette fois, laissez `3.0` dans le fichier.** Le cluster est revenu en v2, mais on va réparer la v3 à la section suivante : votre fichier est déjà prêt pour cela.
 
 > 🧠 **Les sondes sont le filet de sécurité des mises à jour.** Sans elles, Kubernetes ne sait qu'une chose : « le programme a démarré ». Avec elles, il sait « l'application répond correctement ». C'est l'une des premières choses à vérifier dans un projet : *nos applications ont-elles des sondes de santé ?*
 
@@ -321,12 +324,12 @@ kubectl rollout undo deployment vote
 
 Le service est rétabli, il reste à livrer la v3 **correctement**. Le diagnostic l'a montré : la v3 a besoin d'un réglage `VOTE_TITLE`. Vous savez où ranger un réglage depuis le TP05 : dans la ConfigMap.
 
-🚧 **À compléter :** dans `vote.config.yml`, ajoutez une ligne `VOTE_TITLE` sous les deux options (au même niveau qu'elles), avec le titre de votre choix entre guillemets, puis enregistrez.
+🚧 **À compléter :** dans `vote.config.yml`, gardez vos deux options telles quelles et ajoutez une ligne `VOTE_TITLE` en dessous (au même niveau qu'elles), avec le titre de votre choix entre guillemets, puis enregistrez.
 
 ```yaml
 data:
-  OPTION_A: Montagne
-  OPTION_B: Mer
+  OPTION_A: …          # vos options du TP05, inchangées
+  OPTION_B: …
   VOTE_TITLE: # TODO : un titre entre guillemets, par exemple "Votre destination de vacances ?"
 ```
 
@@ -350,16 +353,16 @@ Rechargez la page : badge **v3.0**, et votre titre en haut de la page. La v3 ét
 
 ## 🧪 7 — Deux pannes express
 
-Pour compléter votre catalogue, provoquez deux autres pannes très courantes. Grâce aux sondes, aucune ne touchera les utilisateurs. Pour chacune : modifiez le fichier, appliquez, observez **une minute**, lisez la cause, puis annulez avec `kubectl rollout undo deployment vote` **et remettez le fichier comme avant**.
+Pour compléter votre catalogue, provoquez deux autres pannes très courantes. Grâce aux sondes, aucune ne touchera les utilisateurs. Pour chacune : modifiez le fichier, appliquez, observez **une minute**, lisez la cause, puis annulez avec `kubectl rollout undo deployment vote` (une seule fois) **et remettez le fichier dans son état de référence** : version `3.0`, sondes en place, réservation de mémoire à `64Mi`, pas de bloc `limits`. Inutile de réappliquer ensuite : le cluster est déjà revenu en arrière.
 
 **Panne 1 — une image introuvable.** Passez l'image en version `4.0`, qui n'existe pas.
 
 ```
 NAME                    READY   STATUS             RESTARTS   AGE
-vote-6d8b4d-8t6z9       0/1     ImagePullBackOff   0          25s
+vote-6d8b4d6c9f-8t6z9   0/1     ImagePullBackOff   0          25s
 ```
 
-`kubectl describe pod <nom-du-pod>` en donne la cause, tout en bas : `Failed to pull image "ghcr.io/bngams/kube-vote:4.0": … manifest unknown`. L'image n'existe pas dans le registre : une faute de frappe dans la version, ou une image pas encore publiée.
+Le statut passe d'abord par `ErrImagePull`, puis `ImagePullBackOff` (Kubernetes réessaie, en espaçant les tentatives). `kubectl describe pod <nom-du-pod>` en donne la cause, tout en bas : `Failed to pull image "ghcr.io/bngams/kube-vote:4.0": … manifest unknown`. L'image n'existe pas dans le registre : une faute de frappe dans la version, ou une image pas encore publiée. Annulez, puis remettez `3.0` dans le fichier.
 
 **Panne 2 — trop peu de mémoire.** Dans le bloc `resources`, donnez au conteneur une **limite** de mémoire trop basse pour lui. Une limite ne peut pas être inférieure à la réservation : baissez aussi la réservation.
 
@@ -377,7 +380,7 @@ NAME                    READY   STATUS             RESTARTS      AGE
 vote-6b7d5b679-npmvv    0/1     CrashLoopBackOff   2 (15s ago)   41s
 ```
 
-Le statut affiché est encore `CrashLoopBackOff`, mais `kubectl describe pod <nom-du-pod>` révèle une autre cause :
+Selon l'instant, la colonne `STATUS` affiche `OOMKilled` ou `CrashLoopBackOff`. Dans les deux cas, `kubectl describe pod <nom-du-pod>` révèle la cause :
 
 ```
     Last State:     Terminated
@@ -399,8 +402,8 @@ Voici les statuts rencontrés pendant la formation, à garder sous la main :
 | `CreateContainerConfigError` | une ConfigMap ou un Secret attendu est introuvable | `kubectl describe pod` | TP05 |
 | `ImagePullBackOff` / `ErrImagePull` | l'image ne peut pas être téléchargée (nom, version, droits d'accès) | `kubectl describe pod` | TP06 |
 | `CrashLoopBackOff` | l'application plante au démarrage, en boucle | `kubectl logs` (et `--previous`) | TP06 |
-| `OOMKilled` | l'application a dépassé sa limite de mémoire | `kubectl describe pod` (`Last State`) | TP06 |
-| `Running` mais `0/1` | l'application tourne, mais sa sonde de *readiness* échoue | `kubectl describe pod` (événements `Unhealthy`) | TP06 |
+| `OOMKilled` | l'application a dépassé sa limite de mémoire (souvent visible dans `Last State` plutôt que dans `STATUS`) | `kubectl describe pod` (`Last State`) | TP06 |
+| `Running` mais `0/1` | l'application tourne, mais sa sonde de *readiness* échoue | `kubectl describe pod` (événements `Unhealthy`) | TP06, « Pour aller plus loin » |
 
 > 📖 [Mettre à jour un Deployment](https://kubernetes.io/fr/docs/concepts/workloads/controllers/deployment/#mise-%C3%A0-jour-d-un-d%C3%A9ploiement) · [Sondes de santé](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) · [Déboguer un pod](https://kubernetes.io/docs/tasks/debug/debug-application/debug-pods/)
 
@@ -408,9 +411,16 @@ Voici les statuts rencontrés pendant la formation, à garder sous la main :
 
 Ces pistes sont facultatives.
 
-- **Revenir à une révision précise :** `kubectl rollout undo deployment vote --to-revision=2` revient à la révision 2 de l'historique, et pas seulement à la précédente. Pensez ensuite à remettre le fichier en cohérence.
-- **Documenter les versions :** juste après un `apply`, `kubectl annotate deployment vote kubernetes.io/change-cause="passage en v3 avec titre"` remplit la colonne `CHANGE-CAUSE` de l'historique pour la révision en cours.
-- **Régler la mise à jour progressive :** dans `vote.deploy.yml`, sous `spec:` (au même niveau que `replicas`), le bloc `strategy.rollingUpdate` avec `maxSurge` (combien de pods en plus pendant la mise à jour) et `maxUnavailable` (combien de pods en moins) permet d'aller plus vite ou plus prudemment.
+- **Revenir à une révision précise :** listez l'historique (`kubectl rollout history deployment vote`), examinez une révision avec `kubectl rollout history deployment vote --revision=N` (remplacez `N` par son numéro), puis `kubectl rollout undo deployment vote --to-revision=N` y revient directement. Kubernetes ne garde que les 10 dernières révisions. Pensez ensuite à remettre le fichier en cohérence.
+- **Documenter les versions :** juste après un `apply`, `kubectl annotate deployment vote kubernetes.io/change-cause="passage en v3 avec titre"` remplit la colonne `CHANGE-CAUSE` de l'historique pour la révision en cours. Attention : la même cause sera recopiée sur les révisions suivantes tant que vous ne la changez pas.
+- **Régler la mise à jour progressive :** dans `vote.deploy.yml`, sous `spec:` (au même niveau que `replicas`), ajoutez le bloc suivant pour aller plus vite (`maxSurge` : combien de pods en plus pendant la mise à jour) ou plus prudemment (`maxUnavailable` : combien de pods en moins) :
+
+  ```yaml
+    strategy:
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 0
+  ```
 - **Une sonde qui échoue :** changez le `path` de la `readinessProbe` en `/nexistepas`, appliquez, et observez : les nouveaux pods restent `Running` mais `0/1`, et la mise à jour s'arrête. `kubectl describe pod` montre des événements `Unhealthy`. Annulez ensuite.
 
 ## 🎉 Challenge final
