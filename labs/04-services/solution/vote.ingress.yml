@@ -1,0 +1,16 @@
+# La porte d'entrée du cluster : toutes les requêtes reçues sur "/" sont envoyées au Service vote
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vote
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vote
+                port:
+                  number: 80

@@ -1,0 +1,24 @@
+# worker : sort les votes de redis et les enregistre dans db. Personne ne l'appelle : pas de Service.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+  labels:
+    app: worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+    spec:
+      containers:
+        - name: worker
+          image: dockersamples/examplevotingapp_worker
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi

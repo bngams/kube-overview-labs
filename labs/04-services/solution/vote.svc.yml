@@ -1,0 +1,13 @@
+# Une adresse stable, "vote", qui répartit les visiteurs entre tous les pods portant l'étiquette app: vote
+apiVersion: v1
+kind: Service
+metadata:
+  name: vote
+  labels:
+    app: vote
+spec:
+  selector:
+    app: vote
+  ports:
+    - port: 80
+      targetPort: 80
