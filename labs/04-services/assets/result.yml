@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: result
-          image: dockersamples/examplevotingapp_result
+          image: ghcr.io/bngams/kube-result:1.0
           ports:
             - containerPort: 80
           resources:

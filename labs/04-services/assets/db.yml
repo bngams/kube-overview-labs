@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:15-alpine
+          image: ghcr.io/bngams/kube-postgres:15-alpine
           env:
             - name: POSTGRES_USER
               value: postgres

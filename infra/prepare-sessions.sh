@@ -20,11 +20,13 @@ CLUSTER_IMAGES=(
   ghcr.io/bngams/kube-vote:1.0
   ghcr.io/bngams/kube-vote:2.0
   ghcr.io/bngams/kube-vote:3.0
-  redis:alpine
-  postgres:15-alpine
-  dockersamples/examplevotingapp_worker
-  dockersamples/examplevotingapp_result
+  ghcr.io/bngams/kube-redis:8-alpine
+  ghcr.io/bngams/kube-postgres:15-alpine
+  ghcr.io/bngams/kube-worker:1.0
+  ghcr.io/bngams/kube-result:1.0
+  ghcr.io/bngams/kube-busybox:1.37
 )
+# Toutes les images viennent de ghcr.io : Docker Hub s'est révélé très lent (cf. app/README.md).
 
 for n in "${SESSIONS[@]}"; do
   echo "=== session $n"

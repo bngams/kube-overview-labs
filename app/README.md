@@ -5,10 +5,13 @@ Le cours utilise l'[example-voting-app](https://github.com/dockersamples/example
 | Composant | Techno | Image utilisée |
 |---|---|---|
 | `vote` | Python / Flask | **`ghcr.io/bngams/kube-vote:{1.0,2.0,3.0}`**, notre fork (voir ci-dessous) |
-| `redis` | Redis | `redis:alpine` |
-| `worker` | .NET | `dockersamples/examplevotingapp_worker` |
-| `db` | PostgreSQL | `postgres:15-alpine` |
-| `result` | Node.js | `dockersamples/examplevotingapp_result` |
+| `redis` | Redis | `ghcr.io/bngams/kube-redis:8-alpine` (copie de `redis:8-alpine`) |
+| `worker` | .NET | `ghcr.io/bngams/kube-worker:1.0` (copie de `dockersamples/examplevotingapp_worker`) |
+| `db` | PostgreSQL | `ghcr.io/bngams/kube-postgres:15-alpine` (copie de `postgres:15-alpine`) |
+| `result` | Node.js | `ghcr.io/bngams/kube-result:1.0` (copie de `dockersamples/examplevotingapp_result`) |
+| *(outil)* | BusyBox | `ghcr.io/bngams/kube-busybox:1.37` (copie de `busybox:1.37`, pour les tests réseau du TP04) |
+
+> **Pourquoi des copies sur ghcr ?** Mesuré le 05/10/2026 : l'image `result` (77 Mo) met 3 min 30 à se télécharger depuis Docker Hub, contre 10 s depuis ghcr. En salle, avec plusieurs postes en mode local, la différence est décisive. Les copies sont faites par le workflow `mirror-images.yml` du fork (amd64 + arm64), sans aucune modification.
 
 ## Pourquoi un fork de `vote` ?
 
