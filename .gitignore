@@ -2,3 +2,4 @@
 example cours/
 .DS_Store
 .env
+.claude/

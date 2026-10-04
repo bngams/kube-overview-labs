@@ -1,0 +1,32 @@
+# Slides
+
+Deux présentations HTML (reveal.js), une par jour :
+
+- [`jour1.html`](jour1.html) : des conteneurs à Kubernetes (modules 1 à 5, TP00 à TP03)
+- [`jour2.html`](jour2.html) : Kubernetes dans la vraie vie (modules 5 à 8, TP04 à TP08)
+
+## Ouvrir les slides
+
+Double-cliquez sur le fichier : il s'ouvre dans le navigateur. Une connexion Internet est nécessaire (reveal.js et les polices viennent d'un CDN).
+
+Si un navigateur bloque les fichiers locaux, servez le dossier :
+
+```bash
+python3 -m http.server 8000 --directory slides
+```
+
+puis ouvrez `http://localhost:8000/jour1.html`.
+
+## Pendant la présentation
+
+| Touche | Action |
+|---|---|
+| `→` / `Espace` | slide suivante (et apparitions successives) |
+| `S` | **notes du formateur** dans une fenêtre séparée (déroulé, durées, réponses du quiz) |
+| `F` | plein écran |
+| `O` ou `Échap` | vue d'ensemble des slides |
+| `B` | écran noir (pour une discussion) |
+
+## Modifier
+
+Le style commun est dans [`theme.css`](theme.css) (palette Excalidraw, police manuscrite *Kalam* pour les schémas). Les schémas sont en SVG directement dans le HTML : chaque boîte est un `<rect class="box f-blue" …>` suivi de son `<text>`, ce qui les rend faciles à retoucher. Les notes formateur sont dans les blocs `<aside class="notes">`.

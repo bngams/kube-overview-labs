@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kubernetes, jour 2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.2.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.2.1/theme/white.min.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1e1e1e"/></marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e03131"/></marker>
+  </defs>
+</svg>
+
+<div class="reveal"><div class="slides">
+
+<!-- ============================ OUVERTURE ============================ -->
+<section>
+  <p class="tagline">Formation Kubernetes · Jour 2</p>
+  <h1>Kubernetes dans la vraie vie</h1>
+  <h3>Joindre, configurer, mettre à jour, réparer… et décider</h3>
+  <aside class="notes">Accueil. Vérifier que tout le monde a redémarré son cluster (minikube start / k3d cluster start tp).</aside>
+</section>
+
+<section>
+  <h2>Explique à ton voisin</h2>
+  <p>En binôme, chacun explique à l'autre, <b>avec ses mots</b> :</p>
+  <ul>
+    <li class="fragment">la différence entre une <b>image</b> et un <b>conteneur</b> ;</li>
+    <li class="fragment">ce qu'est l'<b>état souhaité</b>, et ce que fait Kubernetes avec ;</li>
+    <li class="fragment">pourquoi un pod supprimé revient… mais pas un pod lancé avec <code>kubectl run</code> ;</li>
+    <li class="fragment">pourquoi « <b>le fichier fait foi</b> ».</li>
+  </ul>
+  <aside class="notes">15 minutes. Faire restituer 2 ou 3 binômes. Corriger les confusions avant d'avancer.</aside>
+</section>
+
+<section>
+  <h2>Au programme aujourd'hui</h2>
+  <div class="cols">
+    <div class="card blue"><h4>Matin</h4><ul><li>Services et Ingress <small>TP04</small></li><li>Configuration, secrets, namespaces <small>TP05</small></li><li>Mettre à jour et réparer <small>TP06</small></li></ul></div>
+    <div class="card green"><h4>Après-midi</h4><ul><li>Kubernetes dans votre projet <small>TP08</small></li><li>Mission finale et chasse aux pannes <small>TP07</small></li><li>Synthèse</li></ul></div>
+  </div>
+  <aside class="notes">L'ordre de l'après-midi peut être inversé selon l'énergie du groupe : la mission finale est plus active.</aside>
+</section>
+
+<!-- ============================ MODULE 5b ============================ -->
+<section class="module">
+  <p class="num">Module 5 (suite)</p>
+  <h1>Rendre l'application joignable</h1>
+  <aside class="notes">1h15 avec le TP04. Au TP04, on peut enfin voter pour de vrai.</aside>
+</section>
+
+<section>
+  <h2>Les pods sont éphémères</h2>
+  <svg class="diagram" viewBox="0 0 900 260" width="780">
+    <rect class="box f-yellow" x="60" y="40" width="200" height="60" rx="10"/><text class="ts" x="160" y="76" text-anchor="middle">pod 10.244.0.4</text>
+    <rect class="box f-yellow" x="60" y="115" width="200" height="60" rx="10"/><text class="ts" x="160" y="151" text-anchor="middle">pod 10.244.0.3</text>
+    <rect class="box f-yellow" x="60" y="190" width="200" height="60" rx="10"/><text class="ts" x="160" y="226" text-anchor="middle">pod 10.244.0.5</text>
+    <g class="fragment">
+      <line x1="60" y1="40" x2="260" y2="100" stroke="#e03131" stroke-width="4"/><line x1="260" y1="40" x2="60" y2="100" stroke="#e03131" stroke-width="4"/>
+      <path class="arrow" d="M270 70 H 380"/>
+      <rect class="box f-green" x="390" y="40" width="200" height="60" rx="10"/><text class="ts" x="490" y="76" text-anchor="middle">pod 10.244.0.6</text>
+      <text class="ts red-text" x="620" y="76">nouvelle adresse !</text>
+    </g>
+  </svg>
+  <p class="fragment">Qui doit-on appeler ? Lequel des 3 ? Et si l'adresse change demain ?</p>
+  <p class="tagline fragment">On ne s'adresse jamais directement à un pod.</p>
+  <aside class="notes">Les pods naissent et meurent en permanence : c'est normal. Il faut un intermédiaire stable.</aside>
+</section>
+
+<section>
+  <h2>Le Service : un nom et une adresse stables</h2>
+  <svg class="diagram" viewBox="0 0 900 300" width="780">
+    <circle class="box f-white" cx="70" cy="150" r="40"/><text class="ts" x="70" y="156" text-anchor="middle">qui ?</text>
+    <path class="arrow" d="M115 150 H 245"/><text class="ts" x="180" y="138" text-anchor="middle">http://vote</text>
+    <rect class="box f-blue" x="250" y="95" width="230" height="110" rx="14"/><text class="t" x="365" y="135" text-anchor="middle">Service vote</text><text class="ts muted" x="365" y="162" text-anchor="middle">adresse fixe</text><text class="ts muted" x="365" y="187" text-anchor="middle">cherche : app=vote</text>
+    <path class="arrow" d="M485 120 L 590 60"/><path class="arrow" d="M485 150 H 590"/><path class="arrow" d="M485 180 L 590 240"/>
+    <rect class="box f-yellow" x="595" y="30" width="200" height="55" rx="10"/><text class="ts" x="695" y="63" text-anchor="middle">pod app=vote</text>
+    <rect class="box f-yellow" x="595" y="122" width="200" height="55" rx="10"/><text class="ts" x="695" y="155" text-anchor="middle">pod app=vote</text>
+    <rect class="box f-yellow" x="595" y="214" width="200" height="55" rx="10"/><text class="ts" x="695" y="247" text-anchor="middle">pod app=vote</text>
+  </svg>
+  <p class="small">Le Service repère ses pods par leur <b>étiquette</b>, comme le Deployment, et <b>répartit</b> les requêtes entre eux. Son nom est son adresse : <code>http://vote</code>.</p>
+  <aside class="notes">Métaphore : l'adresse postale ou le standard téléphonique. Peu importe qui décroche, on appelle toujours le même numéro.</aside>
+</section>
+
+<section>
+  <h2>Les morceaux se trouvent par leur nom</h2>
+  <svg class="diagram" viewBox="0 0 900 260" width="800">
+    <rect class="box f-yellow" x="40" y="40" width="150" height="60" rx="12"/><text class="t" x="115" y="78" text-anchor="middle">vote</text>
+    <path class="arrow" d="M195 70 H 335"/><text class="ts" x="265" y="58" text-anchor="middle">« redis »</text>
+    <rect class="box f-red" x="340" y="40" width="150" height="60" rx="12"/><text class="t" x="415" y="78" text-anchor="middle">redis</text>
+    <rect class="box f-violet" x="640" y="40" width="150" height="60" rx="12"/><text class="t" x="715" y="78" text-anchor="middle">worker</text>
+    <path class="arrow" d="M635 70 H 495"/><text class="ts" x="565" y="58" text-anchor="middle">« redis »</text>
+    <path class="arrow" d="M715 105 V 165"/><text class="ts" x="760" y="140">« db »</text>
+    <rect class="box f-blue" x="640" y="170" width="150" height="60" rx="12"/><text class="t" x="715" y="208" text-anchor="middle">db</text>
+    <rect class="box f-green" x="340" y="170" width="150" height="60" rx="12"/><text class="t" x="415" y="208" text-anchor="middle">result</text>
+    <path class="arrow" d="M495 200 H 635"/><text class="ts" x="565" y="188" text-anchor="middle">« db »</text>
+  </svg>
+  <p class="small">Un annuaire interne (le <b>DNS</b> du cluster) traduit chaque nom de Service en adresse. Aucun morceau ne connaît une seule adresse IP.</p>
+  <aside class="notes">Les noms redis et db sont écrits dans le code des applications : c'est pour cela qu'ils sont imposés.</aside>
+</section>
+
+<section>
+  <h2>L'Ingress : la porte d'entrée</h2>
+  <svg class="diagram" viewBox="0 0 900 260" width="820">
+    <circle class="box f-white" cx="55" cy="130" r="40"/><text class="ts" x="55" y="136" text-anchor="middle">🌍</text>
+    <path class="arrow" d="M100 130 H 160"/>
+    <rect class="box f-orange" x="165" y="80" width="210" height="100" rx="14"/><text class="t" x="270" y="118" text-anchor="middle">contrôleur</text><text class="ts muted" x="270" y="148" text-anchor="middle">Traefik, NGINX…</text>
+    <path class="arrow" d="M380 130 H 440"/>
+    <rect class="box f-violet" x="445" y="80" width="170" height="100" rx="14"/><text class="t" x="530" y="118" text-anchor="middle">Ingress</text><text class="ts muted" x="530" y="148" text-anchor="middle">/ => vote</text>
+    <path class="arrow" d="M620 130 H 680"/>
+    <rect class="box f-blue" x="685" y="80" width="180" height="100" rx="14"/><text class="t" x="775" y="118" text-anchor="middle">Service</text><text class="ts muted" x="775" y="148" text-anchor="middle">puis les pods</text>
+  </svg>
+  <p class="small">L'<b>Ingress</b> est un ensemble de règles d'aiguillage ; le <b>contrôleur</b> reçoit réellement les visites et les applique. On y branche aussi les noms de domaine et les certificats HTTPS.</p>
+  <aside class="notes">Mode cloud : Traefik, inclus dans k3s. Mode local : NGINX à activer dans minikube. Au TP04, par l'Ingress, le nom du pod change à chaque rechargement.</aside>
+</section>
+
+<section>
+  <h2>Les façons d'exposer une application</h2>
+  <table>
+    <tr><th>Objet</th><th>Joignable depuis</th><th>Usage typique</th></tr>
+    <tr><td>Service <code>ClusterIP</code></td><td>l'intérieur du cluster</td><td>faire communiquer les morceaux (redis, db)</td></tr>
+    <tr><td>Service <code>NodePort</code></td><td>l'extérieur, sur un port de chaque nœud</td><td>tests, petits environnements</td></tr>
+    <tr><td>Service <code>LoadBalancer</code></td><td>l'extérieur, via un répartiteur du cloud</td><td>services non web, contrôleur d'Ingress</td></tr>
+    <tr><td><b>Ingress</b></td><td>l'extérieur, en HTTP/HTTPS</td><td>le cas courant pour les sites et API</td></tr>
+  </table>
+  <p class="small mt">À suivre : <b>Gateway API</b>, le successeur de l'Ingress. Le contrôleur NGINX historique n'est plus maintenu par le projet Kubernetes depuis mars 2026.</p>
+  <aside class="notes">Pour un chef de projet : « ajouter une règle d'Ingress » = rendre une application ou une adresse accessible depuis l'extérieur.</aside>
+</section>
+
+<section>
+  <div class="tp">
+    <p class="label">À vous de jouer · environ 1h15</p>
+    <h2>TP04 : Services et Ingress</h2>
+    <ul>
+      <li>Voir les adresses des pods changer</li>
+      <li>Créer le Service <code>vote</code>, observer la répartition</li>
+      <li>Déployer les 4 autres morceaux : <b>votez pour de vrai</b>, résultats en direct</li>
+      <li>Ouvrir la porte d'entrée : le nom du pod change à chaque visite</li>
+    </ul>
+    <p class="meta">labs/04-services</p>
+  </div>
+  <aside class="notes">Mode local : l'activation du module ingress de minikube prend une minute ; bien attendre le kubectl wait.</aside>
+</section>
+
+<!-- ============================ MODULE 5c ============================ -->
+<section class="module">
+  <p class="num">Module 5 (fin)</p>
+  <h1>Configuration, secrets et namespaces</h1>
+  <aside class="notes">45 minutes avec le TP05.</aside>
+</section>
+
+<section>
+  <h2>Une image, plusieurs environnements</h2>
+  <svg class="diagram" viewBox="0 0 900 280" width="780">
+    <rect class="box f-blue" x="40" y="105" width="190" height="80" rx="14"/><text class="t" x="135" y="142" text-anchor="middle">📦 une image</text><text class="ts muted" x="135" y="168" text-anchor="middle">testée une fois</text>
+    <path class="arrow" d="M235 130 L 400 60"/><path class="arrow" d="M235 145 H 400"/><path class="arrow" d="M235 160 L 400 230"/>
+    <rect class="box f-green" x="405" y="25" width="190" height="65" rx="12"/><text class="ts" x="500" y="63" text-anchor="middle">🧪 recette</text>
+    <rect class="box f-green" x="405" y="112" width="190" height="65" rx="12"/><text class="ts" x="500" y="150" text-anchor="middle">🎭 préproduction</text>
+    <rect class="box f-green" x="405" y="199" width="190" height="65" rx="12"/><text class="ts" x="500" y="237" text-anchor="middle">🚀 production</text>
+    <rect class="box f-yellow" x="640" y="25" width="220" height="65" rx="12"/><text class="ts" x="750" y="63" text-anchor="middle">ConfigMap recette</text>
+    <rect class="box f-yellow" x="640" y="112" width="220" height="65" rx="12"/><text class="ts" x="750" y="150" text-anchor="middle">ConfigMap préprod</text>
+    <rect class="box f-yellow" x="640" y="199" width="220" height="65" rx="12"/><text class="ts" x="750" y="237" text-anchor="middle">ConfigMap prod</text>
+  </svg>
+  <p class="small">La <b>ConfigMap</b> range les réglages à part de l'image. Mais attention : une variable d'environnement est lue <b>au démarrage</b>. Changer la ConfigMap impose de <b>redémarrer</b> les pods.</p>
+  <aside class="notes">Au TP05, ils changent la question du vote sans reconstruire l'image, puis constatent qu'une ConfigMap modifiée n'est prise en compte qu'après kubectl rollout restart.</aside>
+</section>
+
+<section>
+  <h2>Le Secret : encodé, pas chiffré</h2>
+  <div class="cols">
+    <div class="card red"><h4>Ce qu'un Secret n'est pas</h4><ul><li>un coffre-fort</li><li>chiffré par défaut : seulement <b>encodé</b> (base64)</li><li>caché à qui peut entrer dans les pods</li></ul></div>
+    <div class="card green"><h4>Ce qui le protège vraiment</h4><ul><li>les <b>droits d'accès</b> : qui peut lire les Secrets ?</li><li>le <b>chiffrement</b> de la base du cluster, à activer</li><li>un coffre dédié : Vault, coffre du cloud, Sealed Secrets, SOPS</li></ul></div>
+  </div>
+  <blockquote class="mt">Un fichier de Secret ne va <b>jamais</b> en clair dans Git.</blockquote>
+  <aside class="notes">Au TP05, ils découvrent le mot de passe en clair dans l'annotation last-applied-configuration, puis le décodent. Effet garanti.</aside>
+</section>
+
+<section>
+  <h2>Les namespaces : des quartiers</h2>
+  <svg class="diagram" viewBox="0 0 900 250" width="760">
+    <rect class="dash" x="40" y="30" width="370" height="190" rx="18"/><text class="t" x="225" y="60" text-anchor="middle">default</text>
+    <rect class="box f-yellow" x="70" y="85" width="140" height="50" rx="10"/><text class="ts" x="140" y="117" text-anchor="middle">vote</text>
+    <rect class="box f-red" x="240" y="85" width="140" height="50" rx="10"/><text class="ts" x="310" y="117" text-anchor="middle">redis</text>
+    <rect class="box f-green" x="70" y="150" width="310" height="45" rx="10"/><text class="ts" x="225" y="179" text-anchor="middle">ConfigMap vote-config</text>
+    <rect class="dash" x="490" y="30" width="370" height="190" rx="18"/><text class="t" x="675" y="60" text-anchor="middle">recette</text>
+    <rect class="box f-yellow" x="520" y="85" width="140" height="50" rx="10"/><text class="ts" x="590" y="117" text-anchor="middle">vote</text>
+    <rect class="dash" x="520" y="150" width="310" height="45" rx="10"/><text class="ts red-text" x="675" y="179" text-anchor="middle">pas de ConfigMap ici !</text>
+  </svg>
+  <ul class="small">
+    <li>Même nom dans deux namespaces : aucun conflit. Les réglages et les noms de Services sont <b>par namespace</b>.</li>
+    <li>On y attache des <b>droits</b> et des <b>quotas</b> (répartition des coûts). Supprimer un namespace supprime tout son contenu.</li>
+    <li>Pas de cloison réseau par défaut : il faut des <i>NetworkPolicies</i>. La production est souvent sur un cluster séparé.</li>
+  </ul>
+  <aside class="notes">Au TP05, vote ne démarre pas dans recette : CreateContainerConfigError, car la ConfigMap n'existe que dans default.</aside>
+</section>
+
+<section>
+  <div class="tp">
+    <p class="label">À vous de jouer · environ 45 min</p>
+    <h2>TP05 : configuration, secrets et namespaces</h2>
+    <ul>
+      <li>Changer la question du vote sans reconstruire l'image</li>
+      <li>Ranger le mot de passe de la base dans un Secret… et le retrouver en clair</li>
+      <li>Créer un environnement de recette, le supprimer d'un coup</li>
+    </ul>
+    <p class="meta">labs/05-configuration</p>
+  </div>
+  <aside class="notes">Les votes repartent de zéro quand la base est remplacée : c'est voulu (pas de volume persistant), à commenter.</aside>
+</section>
+
+<!-- ============================ MODULE 6 ============================ -->
+<section class="module">
+  <p class="num">Module 6</p>
+  <h1>Mettre à jour et réparer</h1>
+  <aside class="notes">1h15 avec le TP06. Le module qui parle le plus aux chefs de projet : mises en production et incidents.</aside>
+</section>
+
+<section>
+  <h2>La mise à jour progressive</h2>
+  <svg class="diagram" viewBox="0 0 900 290" width="760">
+    <text class="ts muted" x="20" y="45">étape 1</text>
+    <rect class="box f-yellow" x="120" y="20" width="110" height="45" rx="8"/><text class="ts" x="175" y="49" text-anchor="middle">v1</text><rect class="box f-yellow" x="245" y="20" width="110" height="45" rx="8"/><text class="ts" x="300" y="49" text-anchor="middle">v1</text><rect class="box f-yellow" x="370" y="20" width="110" height="45" rx="8"/><text class="ts" x="425" y="49" text-anchor="middle">v1</text>
+    <g class="fragment"><text class="ts muted" x="20" y="115">étape 2</text>
+    <rect class="box f-yellow" x="120" y="90" width="110" height="45" rx="8"/><text class="ts" x="175" y="119" text-anchor="middle">v1</text><rect class="box f-yellow" x="245" y="90" width="110" height="45" rx="8"/><text class="ts" x="300" y="119" text-anchor="middle">v1</text><rect class="box f-yellow" x="370" y="90" width="110" height="45" rx="8"/><text class="ts" x="425" y="119" text-anchor="middle">v1</text><rect class="box f-violet" x="495" y="90" width="110" height="45" rx="8"/><text class="ts" x="550" y="119" text-anchor="middle">v2 ?</text><text class="ts muted" x="625" y="119">prêt ? alors…</text></g>
+    <g class="fragment"><text class="ts muted" x="20" y="185">étape 3</text>
+    <rect class="dash" x="120" y="160" width="110" height="45" rx="8"/><rect class="box f-yellow" x="245" y="160" width="110" height="45" rx="8"/><text class="ts" x="300" y="189" text-anchor="middle">v1</text><rect class="box f-yellow" x="370" y="160" width="110" height="45" rx="8"/><text class="ts" x="425" y="189" text-anchor="middle">v1</text><rect class="box f-violet" x="495" y="160" width="110" height="45" rx="8"/><text class="ts" x="550" y="189" text-anchor="middle">v2</text><text class="ts muted" x="625" y="189">… on retire un v1</text></g>
+    <g class="fragment"><text class="ts muted" x="20" y="255">à la fin</text>
+    <rect class="box f-violet" x="120" y="230" width="110" height="45" rx="8"/><text class="ts" x="175" y="259" text-anchor="middle">v2</text><rect class="box f-violet" x="245" y="230" width="110" height="45" rx="8"/><text class="ts" x="300" y="259" text-anchor="middle">v2</text><rect class="box f-violet" x="370" y="230" width="110" height="45" rx="8"/><text class="ts" x="425" y="259" text-anchor="middle">v2</text><text class="ts muted" x="500" y="259">aucune coupure</text></g>
+  </svg>
+  <p class="small">Livrer en pleine journée, sans « fenêtre de maintenance ». Pendant quelques secondes, les deux versions cohabitent.</p>
+  <aside class="notes">Au TP06, en rechargeant la page pendant la mise à jour, on voit v1.0 et v2.0 alterner.</aside>
+</section>
+
+<section>
+  <h2>Revenir en arrière en quelques secondes</h2>
+  <svg class="diagram" viewBox="0 0 900 220" width="760">
+    <rect class="box f-grey" x="40" y="60" width="180" height="70" rx="12"/><text class="ts" x="130" y="92" text-anchor="middle">révision 1 : v1</text><text class="ts muted" x="130" y="117" text-anchor="middle">0 pod</text>
+    <rect class="box f-green" x="260" y="60" width="180" height="70" rx="12"/><text class="ts" x="350" y="92" text-anchor="middle">révision 2 : v2</text><text class="ts muted" x="350" y="117" text-anchor="middle">0 pod → 3 pods</text>
+    <rect class="box f-red" x="480" y="60" width="180" height="70" rx="12"/><text class="ts" x="570" y="92" text-anchor="middle">révision 3 : v3 💥</text><text class="ts muted" x="570" y="117" text-anchor="middle">en échec</text>
+    <path class="arrow" d="M570 140 C 570 200, 350 200, 350 140"/><text class="t" x="460" y="210" text-anchor="middle">kubectl rollout undo</text>
+  </svg>
+  <blockquote>Le retour arrière <b>modifie le cluster, pas le fichier</b>. Il faut ensuite remettre le fichier en cohérence, sinon le prochain <code>apply</code> ramène la version cassée.</blockquote>
+  <aside class="notes">Question à poser avant chaque mise en production : comment revient-on en arrière si ça se passe mal ? Attention : on revient facilement sur le code, pas sur les données.</aside>
+</section>
+
+<section>
+  <h2>Les sondes de santé</h2>
+  <div class="cols">
+    <div class="card blue"><h4>🚦 Readiness : « es-tu prêt ? »</h4><p class="small">Sinon : le pod ne reçoit pas de visiteurs, et une mise à jour <b>attend</b> au lieu de remplacer des pods sains.</p></div>
+    <div class="card green"><h4>💓 Liveness : « es-tu vivant ? »</h4><p class="small">Sinon : Kubernetes <b>redémarre</b> le conteneur, utile si l'application est bloquée sans avoir planté.</p></div>
+  </div>
+  <p class="mt">Sans sonde, la v3 cassée a <b>retiré des pods sains</b>. Avec, l'application est restée à <b>3/3</b>.</p>
+  <p class="tagline fragment">Question à poser à toute équipe : nos applications ont-elles des sondes de santé ?</p>
+  <aside class="notes">C'est la démonstration la plus forte du TP06 : même erreur, avec et sans sondes.</aside>
+</section>
+
+<section>
+  <h2>Le catalogue des pannes</h2>
+  <table>
+    <tr><th>Statut</th><th>Ce qui se passe</th><th>Où chercher</th></tr>
+    <tr><td><code>Pending</code></td><td>pas de place sur les nœuds</td><td><code>describe</code></td></tr>
+    <tr><td><code>CreateContainerConfigError</code></td><td>ConfigMap ou Secret introuvable</td><td><code>describe</code></td></tr>
+    <tr><td><code>ImagePullBackOff</code></td><td>l'image ne peut pas être téléchargée</td><td><code>describe</code></td></tr>
+    <tr><td><code>CrashLoopBackOff</code></td><td>l'application plante au démarrage, en boucle</td><td><code>logs</code></td></tr>
+    <tr><td><code>OOMKilled</code></td><td>limite de mémoire dépassée</td><td><code>describe</code></td></tr>
+    <tr><td><code>Running</code> mais <code>0/1</code></td><td>la sonde de readiness échoue</td><td><code>describe</code></td></tr>
+  </table>
+  <p class="small mt"><code>CrashLoopBackOff</code> n'est pas un problème de Kubernetes : c'est l'application (ou sa configuration). Première question : « <i>que disent les logs ?</i> »</p>
+  <aside class="notes">À garder sous la main : le glossaire reprend ce tableau.</aside>
+</section>
+
+<section>
+  <h2>La méthode d'enquête</h2>
+  <svg class="diagram" viewBox="0 0 900 160" width="840">
+    <rect class="box f-yellow" x="10" y="40" width="160" height="80" rx="12"/><text class="ts" x="90" y="75" text-anchor="middle">1. symptôme</text><text class="ts muted" x="90" y="100" text-anchor="middle">navigateur</text>
+    <path class="arrow" d="M175 80 H 190"/>
+    <rect class="box f-blue" x="195" y="40" width="160" height="80" rx="12"/><text class="ts" x="275" y="75" text-anchor="middle">2. vue d'ensemble</text><text class="ts muted" x="275" y="100" text-anchor="middle">get</text>
+    <path class="arrow" d="M360 80 H 375"/>
+    <rect class="box f-violet" x="380" y="40" width="160" height="80" rx="12"/><text class="ts" x="460" y="75" text-anchor="middle">3. détail</text><text class="ts muted" x="460" y="100" text-anchor="middle">describe</text>
+    <path class="arrow" d="M545 80 H 560"/>
+    <rect class="box f-orange" x="565" y="40" width="160" height="80" rx="12"/><text class="ts" x="645" y="75" text-anchor="middle">4. l'application</text><text class="ts muted" x="645" y="100" text-anchor="middle">logs</text>
+    <path class="arrow" d="M730 80 H 745"/>
+    <rect class="box f-green" x="750" y="40" width="140" height="80" rx="12"/><text class="ts" x="820" y="75" text-anchor="middle">5. réparer</text><text class="ts muted" x="820" y="100" text-anchor="middle">apply</text>
+  </svg>
+  <p class="small">Puis on documente : symptôme, cause, réparation, prévention. C'est le <b>post-mortem</b>, souvent présenté par le chef de projet.</p>
+  <aside class="notes">Cette méthode sert directement à la chasse aux pannes du TP07.</aside>
+</section>
+
+<section>
+  <div class="tp">
+    <p class="label">À vous de jouer · environ 1h15</p>
+    <h2>TP06 : mettre à jour et réparer</h2>
+    <ul>
+      <li>Déployer la v2 sans coupure</li>
+      <li>La v3 plante : diagnostiquer avec <code>describe</code> et <code>logs</code></li>
+      <li>Revenir en arrière, remettre le fichier en cohérence</li>
+      <li>Ajouter des sondes : la même erreur ne touche plus personne</li>
+      <li>Provoquer un <code>ImagePullBackOff</code> et un <code>OOMKilled</code></li>
+    </ul>
+    <p class="meta">labs/06-mises-a-jour</p>
+  </div>
+  <aside class="notes">Rappeler : un seul rollout undo à la fois (deux undo successifs ramènent la version cassée).</aside>
+</section>
+
+<!-- ============================ MODULE 7 ============================ -->
+<section class="module">
+  <p class="num">Module 7</p>
+  <h1>Kubernetes dans votre projet</h1>
+  <aside class="notes">1 heure avec l'étude de cas (TP08). Le module pensé pour les chefs de projet ; les profils techniques jouent l'équipe interrogée.</aside>
+</section>
+
+<section>
+  <h2>Ce que Kubernetes apporte… et ce qu'il coûte</h2>
+  <div class="cols">
+    <div class="card green"><h4>Il apporte</h4><ul class="small"><li>disponibilité malgré les pannes</li><li>passage à l'échelle</li><li>livraisons fréquentes sans coupure</li><li>applications à plusieurs morceaux</li><li>environnements séparés</li><li>portabilité entre clouds</li></ul></div>
+    <div class="card red"><h4>Il coûte</h4><ul class="small"><li><b>des compétences</b> : souvent le premier coût</li><li>de la complexité</li><li>une infrastructure qui tourne en permanence</li><li>de l'outillage : supervision, logs, sauvegardes, sécurité</li></ul></div>
+  </div>
+  <aside class="notes">Kubernetes n'est pas une fin en soi : il répond à des besoins précis.</aside>
+</section>
+
+<section>
+  <h2>Quand ce n'est probablement <span class="hand">pas</span> le bon choix</h2>
+  <ul>
+    <li>Un site vitrine, un blog, une petite application interne</li>
+    <li>Une application unique, rarement mise à jour, sans forte exigence de disponibilité</li>
+    <li>Une équipe sans compétences Kubernetes, ni budget pour en acquérir</li>
+    <li>Un prototype qui doit sortir vite <small>(les conteneurs faciliteront la suite)</small></li>
+  </ul>
+  <p class="tagline mt fragment">La bonne question : quel niveau de plateforme ?</p>
+  <aside class="notes">Entre un simple hébergement et un cluster géré soi-même, il y a beaucoup d'intermédiaires : slide suivante.</aside>
+</section>
+
+<section>
+  <h2>Du plus simple au plus exigeant</h2>
+  <svg class="diagram" viewBox="0 0 900 230" width="840">
+    <path class="arrow" d="M30 200 H 870"/><text class="ts muted" x="450" y="225" text-anchor="middle">de plus en plus de contrôle… et de travail pour l'équipe</text>
+    <rect class="box f-green" x="20" y="40" width="200" height="130" rx="14"/><text class="ts" x="120" y="75" text-anchor="middle">Pas de Kubernetes</text><text class="ts muted" x="120" y="105" text-anchor="middle">hébergement, PaaS,</text><text class="ts muted" x="120" y="128" text-anchor="middle">conteneurs serverless</text>
+    <rect class="box f-blue" x="240" y="40" width="200" height="130" rx="14"/><text class="ts" x="340" y="75" text-anchor="middle">Kubernetes managé</text><text class="ts muted" x="340" y="105" text-anchor="middle">EKS, GKE, AKS,</text><text class="ts muted" x="340" y="128" text-anchor="middle">OVHcloud, Scaleway…</text>
+    <rect class="box f-violet" x="460" y="40" width="200" height="130" rx="14"/><text class="ts" x="560" y="75" text-anchor="middle">Plateforme d'entreprise</text><text class="ts muted" x="560" y="105" text-anchor="middle">OpenShift, Rancher,</text><text class="ts muted" x="560" y="128" text-anchor="middle">Tanzu…</text>
+    <rect class="box f-orange" x="680" y="40" width="200" height="130" rx="14"/><text class="ts" x="780" y="75" text-anchor="middle">Installé soi-même</text><text class="ts muted" x="780" y="105" text-anchor="middle">souveraineté,</text><text class="ts muted" x="780" y="128" text-anchor="middle">équipe très compétente</text>
+  </svg>
+  <p class="small">Le <b>Kubernetes managé</b> est le choix le plus courant : le fournisseur gère le cerveau du cluster, l'équipe gère ses applications.</p>
+  <aside class="notes">Faire placer les projets des participants sur cette échelle.</aside>
+</section>
+
+<section>
+  <h2>Qui fait quoi ?</h2>
+  <table>
+    <tr><th>Rôle</th><th>Responsabilités</th><th>Pendant la formation</th></tr>
+    <tr><td>Développeurs</td><td>code, Dockerfile, sondes, configuration attendue</td><td>TP01, TP06</td></tr>
+    <tr><td>DevOps / équipe applicative</td><td>fichiers YAML, CI/CD, mises à jour</td><td>TP02 à TP06</td></tr>
+    <tr><td>Plateforme / Ops / SRE</td><td>le cluster, l'Ingress, la supervision, les sauvegardes</td><td>TP00</td></tr>
+    <tr><td>Chef de projet / PO</td><td>exigences, planning des mises en production, communication d'incident</td><td>TP07</td></tr>
+    <tr><td>Sécurité</td><td>droits d'accès, Secrets, sécurité des images</td><td>TP05</td></tr>
+  </table>
+  <p class="tagline mt">« Qui est d'astreinte si le cluster tombe à 3 h du matin ? »</p>
+  <aside class="notes">Les intitulés varient selon les organisations ; l'important est que chaque case ait un nom avant la mise en production.</aside>
+</section>
+
+<section>
+  <h2>Les coûts, en pratique</h2>
+  <div class="cols">
+    <div class="card yellow"><h4>🖥️ Les nœuds</h4><p class="small">dimensionnés par la somme des <b>réservations</b>. Des réservations « par sécurité » coûtent cher.</p></div>
+    <div class="card blue"><h4>🌙 Les environnements</h4><p class="small">un cluster par environnement, ou des namespaces ? Éteindre la recette la nuit (0 réplica) ?</p></div>
+    <div class="card violet"><h4>🧰 L'outillage</h4><p class="small">supervision, logs, sauvegardes, sécurité : open source à opérer ou service payant.</p></div>
+    <div class="card red"><h4>👥 Les personnes</h4><p class="small">formation, recrutement, astreintes : souvent le premier poste.</p></div>
+  </div>
+  <p class="small mt">La démarche <b>FinOps</b> s'applique pleinement : étiqueter par équipe, réservations réalistes, éteindre ce qui ne sert pas, suivre la facture.</p>
+  <aside class="notes">Rappel du TP03 : les requests font la capacité, donc la facture.</aside>
+</section>
+
+<section>
+  <h2>Les mots que vous entendrez</h2>
+  <div class="cols">
+    <div class="card grey"><h4>Helm, Kustomize</h4><p class="small">regrouper et paramétrer les fichiers YAML d'une application, l'installer en une commande</p></div>
+    <div class="card grey"><h4>GitOps (Argo CD, Flux)</h4><p class="small">le cluster applique automatiquement ce qui est dans Git : le fichier fait foi, jusqu'au bout</p></div>
+    <div class="card grey"><h4>CI/CD</h4><p class="small">la chaîne qui construit l'image, la teste et la livre</p></div>
+    <div class="card grey"><h4>Observabilité</h4><p class="small">métriques, logs et alertes (Prometheus, Grafana…) : voir ce qui se passe</p></div>
+  </div>
+  <aside class="notes">Pas de détail technique : savoir à quoi sert chaque mot suffit pour suivre une réunion.</aside>
+</section>
+
+<section>
+  <div class="tp">
+    <p class="label">Atelier · environ 1h, sans ordinateur</p>
+    <h2>TP08 : étude de cas</h2>
+    <ul>
+      <li>4 projets fictifs : office de tourisme, réservation, application métier, données de santé</li>
+      <li>Kubernetes ou pas ? Managé ou non ? Qui fait quoi ? Combien ?</li>
+      <li>Les 3 questions à poser à l'équipe technique</li>
+      <li>Restitution de 5 minutes par groupe</li>
+    </ul>
+    <p class="meta">labs/08-etude-de-cas</p>
+  </div>
+  <aside class="notes">Mélanger les profils dans chaque groupe. Éléments de réponse dans le README (bloc repliable).</aside>
+</section>
+
+<!-- ============================ MODULE 8 ============================ -->
+<section class="module">
+  <p class="num">Module 8</p>
+  <h1>Mission finale</h1>
+  <aside class="notes">1h15. Moins guidé : les participants mobilisent tout ce qu'ils ont appris.</aside>
+</section>
+
+<section>
+  <div class="tp">
+    <p class="label">À vous de jouer · environ 1h15, en autonomie</p>
+    <h2>TP07 : mettre en production, puis réparer</h2>
+    <ul>
+      <li>Le cahier des charges : toute l'application dans un namespace <code>prod</code></li>
+      <li>La recette : vérifier soi-même les 7 exigences</li>
+      <li>La chasse aux pannes : votre binôme casse, vous enquêtez, vous réparez</li>
+      <li>La fiche d'incident : symptôme, cause, réparation, prévention</li>
+    </ul>
+    <p class="meta">labs/07-mission-finale</p>
+  </div>
+  <aside class="notes">Passer dans les binômes pour la « recette officielle ». Débriefing : les pannes 2 et 3 ont le même symptôme mais pas la même cause.</aside>
+</section>
+
+<!-- ============================ CLÔTURE ============================ -->
+<section>
+  <h2>Deux jours en six idées</h2>
+  <ol>
+    <li>Un <b>conteneur</b> emporte l'application et son environnement</li>
+    <li>Kubernetes maintient un <b>état souhaité</b> : il compare et corrige en permanence</li>
+    <li><b>Le fichier fait foi</b> : tout se décrit en YAML, idéalement dans Git</li>
+    <li>Les <b>Services</b> et l'<b>Ingress</b> donnent des adresses stables à des pods éphémères</li>
+    <li>Mises à jour <b>sans coupure</b>, <b>retour arrière</b> rapide, <b>sondes</b> de santé</li>
+    <li>Kubernetes répond à des besoins précis ; son principal coût est <b>humain</b></li>
+  </ol>
+  <aside class="notes">Faire relire les phrases du jour 1 (« un pod redémarre en boucle »…) : tout le monde sait maintenant les expliquer.</aside>
+</section>
+
+<section>
+  <h2>Les questions à poser à votre équipe</h2>
+  <ul>
+    <li>Combien de réplicas, sur combien de nœuds ? Nos applications ont-elles des <b>sondes</b> ?</li>
+    <li>Comment revient-on en arrière ? En combien de temps ?</li>
+    <li>Où sont les données ? Les <b>sauvegardes</b> ont-elles été testées ?</li>
+    <li>Où sont rangés les <b>Secrets</b> ? Qui peut les lire ?</li>
+    <li>Les fichiers YAML sont-ils dans <b>Git</b> ? Les mêmes images en recette et en production ?</li>
+    <li>Combien coûte chaque environnement ? Les réservations sont-elles réalistes ?</li>
+  </ul>
+  <p class="small">La liste complète est dans l'étude de cas (TP08, section 6).</p>
+  <aside class="notes">C'est probablement la slide la plus utile pour les chefs de projet : leur conseiller de la photographier.</aside>
+</section>
+
+<section>
+  <h2>Pour aller plus loin</h2>
+  <div class="cols">
+    <div class="card green"><h4>Sans technique</h4><ul class="small"><li><i>The Illustrated Children's Guide to Kubernetes</i> (CNCF)</li><li><i>Kubernetes: The Documentary</i> (YouTube)</li><li>Cloud Native Maturity Model (CNCF)</li></ul></div>
+    <div class="card blue"><h4>Pour pratiquer</h4><ul class="small"><li>les TPs du cours, avec minikube</li><li>Killercoda : clusters dans le navigateur</li><li>documentation officielle, en français</li></ul></div>
+  </div>
+  <p class="small mt">Tout est dans le dépôt : <code>github.com/bngams/kube-overview-labs</code> · <code>ressources.md</code> · <code>glossaire.md</code></p>
+  <aside class="notes">Rappeler d'arrêter ou supprimer son cluster (TP00, section 4).</aside>
+</section>
+
+<section>
+  <h1>Merci !</h1>
+  <p class="tagline">Questions, retours, et à bientôt dans vos projets.</p>
+  <svg class="diagram" viewBox="0 0 900 120" width="600">
+    <rect class="box f-yellow" x="20" y="30" width="150" height="60" rx="12"/><text class="ts" x="95" y="67" text-anchor="middle">application</text>
+    <path class="arrow" d="M175 60 H 235"/>
+    <rect class="box f-blue" x="240" y="30" width="150" height="60" rx="12"/><text class="ts" x="315" y="67" text-anchor="middle">conteneur</text>
+    <path class="arrow" d="M395 60 H 455"/>
+    <rect class="box f-green" x="460" y="30" width="170" height="60" rx="12"/><text class="ts" x="545" y="67" text-anchor="middle">orchestration</text>
+    <path class="arrow" d="M635 60 H 695"/>
+    <rect class="box f-violet" x="700" y="30" width="170" height="60" rx="12"/><text class="ts" x="785" y="67" text-anchor="middle">Kubernetes ✓</text>
+  </svg>
+  <aside class="notes">Évaluation de la formation. Remettre les sessions cloud à zéro après le départ des participants (RESET=1 ./prepare-sessions.sh).</aside>
+</section>
+
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.2.1/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.2.1/plugin/notes/notes.min.js"></script>
+<script>
+  Reveal.initialize({ hash: true, slideNumber: "c/t", transition: "fade", width: 1280, height: 760, margin: 0.06, plugins: [RevealNotes] });
+</script>
+</body>
+</html>

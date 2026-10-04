@@ -1,0 +1,95 @@
+/* Thème des slides du cours Kubernetes : esprit Excalidraw (palette pastel, schémas manuscrits). */
+:root {
+  --ink: #1e1e1e;
+  --muted: #5c5f66;
+  --bg: #ffffff;
+  --blue: #a5d8ff;
+  --green: #b2f2bb;
+  --yellow: #ffec99;
+  --red: #ffc9c9;
+  --violet: #d0bfff;
+  --orange: #ffd8a8;
+  --grey: #e9ecef;
+  --accent: #1971c2;
+  --r-background-color: var(--bg);
+  --r-main-font: "Inter", system-ui, sans-serif;
+  --r-main-font-size: 30px;
+  --r-main-color: var(--ink);
+  --r-heading-font: "Inter", system-ui, sans-serif;
+  --r-heading-color: var(--ink);
+  --r-heading-font-weight: 700;
+  --r-heading-text-transform: none;
+  --r-heading-letter-spacing: -0.01em;
+  --r-link-color: var(--accent);
+}
+
+.reveal { font-family: var(--r-main-font); }
+.reveal h1 { font-size: 2.1em; }
+.reveal h2 { font-size: 1.45em; margin-bottom: 0.6em; }
+.reveal h3 { font-size: 1.05em; color: var(--muted); }
+.reveal p, .reveal li { line-height: 1.45; }
+.reveal ul { display: block; }
+.reveal li { margin: 0.25em 0; }
+.reveal small, .reveal .small { font-size: 0.65em; color: var(--muted); }
+.reveal code { background: var(--grey); padding: 0.05em 0.3em; border-radius: 4px; font-size: 0.85em; }
+.reveal pre { box-shadow: none; width: 100%; }
+.reveal pre code { background: #f8f9fa; border: 2px solid var(--ink); border-radius: 10px; padding: 0.8em 1em; font-size: 0.7em; line-height: 1.4; max-height: 560px; }
+.reveal table { font-size: 0.7em; margin: 0 auto; border-collapse: collapse; }
+.reveal table th { background: var(--grey); }
+.reveal table th, .reveal table td { border: 1.5px solid #ced4da !important; padding: 0.35em 0.7em !important; text-align: left; }
+.reveal blockquote { width: 85%; background: #f8f9fa; border-left: 6px solid var(--accent); box-shadow: none; padding: 0.6em 1em; font-style: normal; font-size: 0.85em; }
+
+/* Écriture manuscrite (schémas, accroches) */
+.hand { font-family: "Kalam", cursive; }
+.reveal .tagline { font-family: "Kalam", cursive; font-size: 1.15em; color: var(--accent); }
+
+/* Section de module */
+.reveal section.module { text-align: left; }
+.reveal section.module .num { font-family: "Kalam", cursive; font-size: 1.4em; color: var(--accent); }
+.reveal section.module h1 { margin-top: 0.2em; }
+
+/* Cartes et colonnes */
+.cols { display: flex; gap: 1.2em; justify-content: center; align-items: stretch; text-align: left; }
+.cols > * { flex: 1; }
+.card { border: 2px solid var(--ink); border-radius: 14px; padding: 0.6em 0.9em; font-size: 0.75em; }
+.card h4 { margin: 0 0 0.3em 0; font-size: 1.1em; }
+.card.blue { background: var(--blue); } .card.green { background: var(--green); }
+.card.yellow { background: var(--yellow); } .card.red { background: var(--red); }
+.card.violet { background: var(--violet); } .card.orange { background: var(--orange); }
+.card.grey { background: var(--grey); }
+
+/* Carte « TP » */
+.tp { border: 3px dashed var(--accent); border-radius: 18px; padding: 0.8em 1.2em; text-align: left; background: #e7f5ff; }
+.tp .label { font-family: "Kalam", cursive; color: var(--accent); font-size: 1.1em; }
+.tp h2 { margin: 0.1em 0 0.4em 0; }
+.tp ul { font-size: 0.8em; }
+.tp .meta { font-size: 0.7em; color: var(--muted); }
+
+/* Bulles « en réunion projet » */
+.meeting { border: 2px solid var(--ink); border-radius: 18px; background: var(--yellow); padding: 0.5em 1em; display: inline-block; font-family: "Kalam", cursive; font-size: 0.95em; margin: 0.25em; }
+
+/* Schémas SVG */
+.reveal svg.diagram { max-width: 100%; height: auto; }
+svg .box { stroke: var(--ink); stroke-width: 2.5; }
+svg .thin { stroke: var(--ink); stroke-width: 1.5; }
+svg .dash { stroke: var(--ink); stroke-width: 2; stroke-dasharray: 8 6; fill: none; }
+svg .arrow { stroke: var(--ink); stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+svg .arrow-red { stroke: #e03131; stroke-width: 2.5; fill: none; marker-end: url(#arrow-red); }
+svg text { font-family: "Kalam", cursive; fill: var(--ink); }
+svg .t { font-size: 24px; }
+svg .ts { font-size: 18px; }
+svg .tl { font-size: 30px; font-weight: 700; }
+svg .muted { fill: var(--muted); }
+svg .red-text { fill: #e03131; }
+svg .f-blue { fill: var(--blue); } svg .f-green { fill: var(--green); }
+svg .f-yellow { fill: var(--yellow); } svg .f-red { fill: var(--red); }
+svg .f-violet { fill: var(--violet); } svg .f-orange { fill: var(--orange); }
+svg .f-grey { fill: var(--grey); } svg .f-white { fill: #fff; }
+
+/* Divers */
+.big { font-size: 1.4em; }
+.center { text-align: center; }
+.left { text-align: left; }
+.mt { margin-top: 0.8em; }
+.check li::marker { content: "✓  "; color: #2f9e44; }
+.reveal .slide-number { font-family: "Inter", sans-serif; font-size: 14px; background: transparent; color: var(--muted); }
