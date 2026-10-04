@@ -29,7 +29,7 @@
 </section>
 
 <section>
-  <h2>Explique à ton voisin</h2>
+  <h2>Expliquez à votre voisin</h2>
   <p>En binôme, chacun explique à l'autre, <b>avec ses mots</b> :</p>
   <ul>
     <li class="fragment">la différence entre une <b>image</b> et un <b>conteneur</b> ;</li>
@@ -44,14 +44,14 @@
   <h2>Au programme aujourd'hui</h2>
   <div class="cols">
     <div class="card blue"><h4>Matin</h4><ul><li>Services et Ingress <small>TP04</small></li><li>Configuration, secrets, namespaces <small>TP05</small></li><li>Mettre à jour et réparer <small>TP06</small></li></ul></div>
-    <div class="card green"><h4>Après-midi</h4><ul><li>Kubernetes dans votre projet <small>TP08</small></li><li>Mission finale et chasse aux pannes <small>TP07</small></li><li>Synthèse</li></ul></div>
+    <div class="card green"><h4>Après-midi</h4><ul><li>Mission finale et chasse aux pannes <small>TP07</small></li><li>Kubernetes dans votre projet <small>TP08</small></li><li>Synthèse</li></ul></div>
   </div>
-  <aside class="notes">L'ordre de l'après-midi peut être inversé selon l'énergie du groupe : la mission finale est plus active.</aside>
+  <aside class="notes">La mission finale vient avant l'étude de cas : celle-ci s'appuie sur le cahier des charges et la fiche d'incident du TP07.</aside>
 </section>
 
 <!-- ============================ MODULE 5b ============================ -->
 <section class="module">
-  <p class="num">Module 5 (suite)</p>
+  <p class="num">Module 5b</p>
   <h1>Rendre l'application joignable</h1>
   <aside class="notes">1h15 avec le TP04. Au TP04, on peut enfin voter pour de vrai.</aside>
 </section>
@@ -102,20 +102,20 @@
     <rect class="box f-green" x="340" y="170" width="150" height="60" rx="12"/><text class="t" x="415" y="208" text-anchor="middle">result</text>
     <path class="arrow" d="M495 200 H 635"/><text class="ts" x="565" y="188" text-anchor="middle">« db »</text>
   </svg>
-  <p class="small">Un annuaire interne (le <b>DNS</b> du cluster) traduit chaque nom de Service en adresse. Aucun morceau ne connaît une seule adresse IP.</p>
+  <p class="small">Ici, une flèche = « qui appelle qui ». Un annuaire interne (le <b>DNS</b> du cluster) traduit chaque nom de Service en adresse. Aucun morceau ne connaît une seule adresse IP.</p>
   <aside class="notes">Les noms redis et db sont écrits dans le code des applications : c'est pour cela qu'ils sont imposés.</aside>
 </section>
 
 <section>
   <h2>L'Ingress : la porte d'entrée</h2>
-  <svg class="diagram" viewBox="0 0 900 260" width="820">
-    <circle class="box f-white" cx="55" cy="130" r="40"/><text class="ts" x="55" y="136" text-anchor="middle">🌍</text>
-    <path class="arrow" d="M100 130 H 160"/>
-    <rect class="box f-orange" x="165" y="80" width="210" height="100" rx="14"/><text class="t" x="270" y="118" text-anchor="middle">contrôleur</text><text class="ts muted" x="270" y="148" text-anchor="middle">Traefik, NGINX…</text>
-    <path class="arrow" d="M380 130 H 440"/>
-    <rect class="box f-violet" x="445" y="80" width="170" height="100" rx="14"/><text class="t" x="530" y="118" text-anchor="middle">Ingress</text><text class="ts muted" x="530" y="148" text-anchor="middle">/ => vote</text>
-    <path class="arrow" d="M620 130 H 680"/>
-    <rect class="box f-blue" x="685" y="80" width="180" height="100" rx="14"/><text class="t" x="775" y="118" text-anchor="middle">Service</text><text class="ts muted" x="775" y="148" text-anchor="middle">puis les pods</text>
+  <svg class="diagram" viewBox="0 0 900 280" width="820">
+    <circle class="box f-white" cx="55" cy="200" r="40"/><text class="ts" x="55" y="206" text-anchor="middle">🌍</text>
+    <path class="arrow" d="M100 200 H 210"/>
+    <rect class="box f-orange" x="215" y="150" width="230" height="100" rx="14"/><text class="t" x="330" y="188" text-anchor="middle">contrôleur</text><text class="ts muted" x="330" y="218" text-anchor="middle">Traefik, NGINX…</text>
+    <path class="arrow" d="M450 200 H 600"/><text class="ts" x="525" y="188" text-anchor="middle">visites</text>
+    <rect class="box f-blue" x="605" y="150" width="250" height="100" rx="14"/><text class="t" x="730" y="188" text-anchor="middle">Service vote</text><text class="ts muted" x="730" y="218" text-anchor="middle">puis les pods</text>
+    <rect class="box f-violet" x="215" y="15" width="230" height="80" rx="14"/><text class="t" x="330" y="50" text-anchor="middle">Ingress</text><text class="ts muted" x="330" y="78" text-anchor="middle">règle : / => vote</text>
+    <path class="dash" d="M330 100 V 145"/><text class="ts muted" x="345" y="128">lit les règles</text>
   </svg>
   <p class="small">L'<b>Ingress</b> est un ensemble de règles d'aiguillage ; le <b>contrôleur</b> reçoit réellement les visites et les applique. On y branche aussi les noms de domaine et les certificats HTTPS.</p>
   <aside class="notes">Mode cloud : Traefik, inclus dans k3s. Mode local : NGINX à activer dans minikube. Au TP04, par l'Ingress, le nom du pod change à chaque rechargement.</aside>
@@ -131,12 +131,12 @@
     <tr><td><b>Ingress</b></td><td>l'extérieur, en HTTP/HTTPS</td><td>le cas courant pour les sites et API</td></tr>
   </table>
   <p class="small mt">À suivre : <b>Gateway API</b>, le successeur de l'Ingress. Le contrôleur NGINX historique n'est plus maintenu par le projet Kubernetes depuis mars 2026.</p>
-  <aside class="notes">Pour un chef de projet : « ajouter une règle d'Ingress » = rendre une application ou une adresse accessible depuis l'extérieur.</aside>
+  <aside class="notes">Pour un chef de projet : « ajouter une règle d'Ingress » = rendre une application ou une adresse accessible depuis l'extérieur. Le contrôleur NGINX du mode local convient pour apprendre ; en production, on choisirait un autre contrôleur ou Gateway API.</aside>
 </section>
 
 <section>
   <div class="tp">
-    <p class="label">À vous de jouer · environ 1h15</p>
+    <p class="label">À vous de jouer · environ 1h</p>
     <h2>TP04 : Services et Ingress</h2>
     <ul>
       <li>Voir les adresses des pods changer</li>
@@ -151,7 +151,7 @@
 
 <!-- ============================ MODULE 5c ============================ -->
 <section class="module">
-  <p class="num">Module 5 (fin)</p>
+  <p class="num">Module 5c</p>
   <h1>Configuration, secrets et namespaces</h1>
   <aside class="notes">45 minutes avec le TP05.</aside>
 </section>
@@ -203,7 +203,7 @@
 
 <section>
   <div class="tp">
-    <p class="label">À vous de jouer · environ 45 min</p>
+    <p class="label">À vous de jouer · environ 35 min</p>
     <h2>TP05 : configuration, secrets et namespaces</h2>
     <ul>
       <li>Changer la question du vote sans reconstruire l'image</li>
@@ -234,20 +234,20 @@
     <g class="fragment"><text class="ts muted" x="20" y="255">à la fin</text>
     <rect class="box f-violet" x="120" y="230" width="110" height="45" rx="8"/><text class="ts" x="175" y="259" text-anchor="middle">v2</text><rect class="box f-violet" x="245" y="230" width="110" height="45" rx="8"/><text class="ts" x="300" y="259" text-anchor="middle">v2</text><rect class="box f-violet" x="370" y="230" width="110" height="45" rx="8"/><text class="ts" x="425" y="259" text-anchor="middle">v2</text><text class="ts muted" x="500" y="259">aucune coupure</text></g>
   </svg>
-  <p class="small">Livrer en pleine journée, sans « fenêtre de maintenance ». Pendant quelques secondes, les deux versions cohabitent.</p>
-  <aside class="notes">Au TP06, en rechargeant la page pendant la mise à jour, on voit v1.0 et v2.0 alterner.</aside>
+  <p class="small">Livrer en pleine journée, sans « fenêtre de maintenance »… à condition que l'application signale quand elle est vraiment prête (les sondes, plus loin). Pendant quelques secondes, les deux versions cohabitent.</p>
+  <aside class="notes">Au TP06, en rechargeant la page pendant la mise à jour, on voit v1.0 et v2.0 alterner. Comme les deux versions coexistent, les changements de base de données doivent rester compatibles avec l'ancienne version.</aside>
 </section>
 
 <section>
   <h2>Revenir en arrière en quelques secondes</h2>
   <svg class="diagram" viewBox="0 0 900 220" width="760">
     <rect class="box f-grey" x="40" y="60" width="180" height="70" rx="12"/><text class="ts" x="130" y="92" text-anchor="middle">révision 1 : v1</text><text class="ts muted" x="130" y="117" text-anchor="middle">0 pod</text>
-    <rect class="box f-green" x="260" y="60" width="180" height="70" rx="12"/><text class="ts" x="350" y="92" text-anchor="middle">révision 2 : v2</text><text class="ts muted" x="350" y="117" text-anchor="middle">0 pod → 3 pods</text>
+    <rect class="box f-green" x="260" y="60" width="180" height="70" rx="12"/><text class="ts" x="350" y="92" text-anchor="middle">révision 2 : v2</text><text class="ts muted" x="350" y="117" text-anchor="middle">2 pods → 3 pods</text>
     <rect class="box f-red" x="480" y="60" width="180" height="70" rx="12"/><text class="ts" x="570" y="92" text-anchor="middle">révision 3 : v3 💥</text><text class="ts muted" x="570" y="117" text-anchor="middle">en échec</text>
     <path class="arrow" d="M570 140 C 570 200, 350 200, 350 140"/><text class="t" x="460" y="210" text-anchor="middle">kubectl rollout undo</text>
   </svg>
   <blockquote>Le retour arrière <b>modifie le cluster, pas le fichier</b>. Il faut ensuite remettre le fichier en cohérence, sinon le prochain <code>apply</code> ramène la version cassée.</blockquote>
-  <aside class="notes">Question à poser avant chaque mise en production : comment revient-on en arrière si ça se passe mal ? Attention : on revient facilement sur le code, pas sur les données.</aside>
+  <aside class="notes">Question à poser avant chaque mise en production : comment revient-on en arrière si ça se passe mal ? Attention : on revient facilement sur le code, pas sur les données. Le retour arrière crée lui-même une nouvelle révision : c'est pourquoi un second undo ramène la version cassée.</aside>
 </section>
 
 <section>
@@ -256,7 +256,7 @@
     <div class="card blue"><h4>🚦 Readiness : « es-tu prêt ? »</h4><p class="small">Sinon : le pod ne reçoit pas de visiteurs, et une mise à jour <b>attend</b> au lieu de remplacer des pods sains.</p></div>
     <div class="card green"><h4>💓 Liveness : « es-tu vivant ? »</h4><p class="small">Sinon : Kubernetes <b>redémarre</b> le conteneur, utile si l'application est bloquée sans avoir planté.</p></div>
   </div>
-  <p class="mt">Sans sonde, la v3 cassée a <b>retiré des pods sains</b>. Avec, l'application est restée à <b>3/3</b>.</p>
+  <p class="mt">Au TP06, vous verrez : sans sonde, une version cassée <b>retire des pods sains</b> ; avec, l'application reste à <b>3/3</b>.</p>
   <p class="tagline fragment">Question à poser à toute équipe : nos applications ont-elles des sondes de santé ?</p>
   <aside class="notes">C'est la démonstration la plus forte du TP06 : même erreur, avec et sans sondes.</aside>
 </section>
@@ -295,7 +295,7 @@
 
 <section>
   <div class="tp">
-    <p class="label">À vous de jouer · environ 1h15</p>
+    <p class="label">À vous de jouer · environ 1h</p>
     <h2>TP06 : mettre à jour et réparer</h2>
     <ul>
       <li>Déployer la v2 sans coupure</li>
@@ -312,6 +312,28 @@
 <!-- ============================ MODULE 7 ============================ -->
 <section class="module">
   <p class="num">Module 7</p>
+  <h1>Mission finale</h1>
+  <aside class="notes">1h15. Moins guidé : les participants mobilisent tout ce qu'ils ont appris.</aside>
+</section>
+
+<section>
+  <div class="tp">
+    <p class="label">À vous de jouer · environ 1h15, en autonomie</p>
+    <h2>TP07 : mettre en production, puis réparer</h2>
+    <ul>
+      <li>Le cahier des charges : toute l'application dans un namespace <code>prod</code></li>
+      <li>La recette : vérifier soi-même les 7 exigences</li>
+      <li>La chasse aux pannes : votre binôme casse, vous enquêtez, vous réparez</li>
+      <li>La fiche d'incident : symptôme, cause, réparation, prévention</li>
+    </ul>
+    <p class="meta">labs/07-mission-finale</p>
+  </div>
+  <aside class="notes">Passer dans les binômes pour la « recette officielle ». Si le temps manque, 2 ou 3 pannes suffisent. Débriefing : les pannes 2 et 3 ont le même symptôme mais pas la même cause.</aside>
+</section>
+
+<!-- ============================ MODULE 8 ============================ -->
+<section class="module">
+  <p class="num">Module 8</p>
   <h1>Kubernetes dans votre projet</h1>
   <aside class="notes">1 heure avec l'étude de cas (TP08). Le module pensé pour les chefs de projet ; les profils techniques jouent l'équipe interrogée.</aside>
 </section>
@@ -319,7 +341,7 @@
 <section>
   <h2>Ce que Kubernetes apporte… et ce qu'il coûte</h2>
   <div class="cols">
-    <div class="card green"><h4>Il apporte</h4><ul class="small"><li>disponibilité malgré les pannes</li><li>passage à l'échelle</li><li>livraisons fréquentes sans coupure</li><li>applications à plusieurs morceaux</li><li>environnements séparés</li><li>portabilité entre clouds</li></ul></div>
+    <div class="card green"><h4>Il apporte</h4><ul class="small"><li>disponibilité malgré les pannes</li><li>passage à l'échelle</li><li>livraisons fréquentes sans coupure</li><li>applications à plusieurs morceaux</li><li>environnements séparés</li><li>portabilité entre clouds (en grande partie)</li></ul></div>
     <div class="card red"><h4>Il coûte</h4><ul class="small"><li><b>des compétences</b> : souvent le premier coût</li><li>de la complexité</li><li>une infrastructure qui tourne en permanence</li><li>de l'outillage : supervision, logs, sauvegardes, sécurité</li></ul></div>
   </div>
   <aside class="notes">Kubernetes n'est pas une fin en soi : il répond à des besoins précis.</aside>
@@ -356,8 +378,8 @@
     <tr><th>Rôle</th><th>Responsabilités</th><th>Pendant la formation</th></tr>
     <tr><td>Développeurs</td><td>code, Dockerfile, sondes, configuration attendue</td><td>TP01, TP06</td></tr>
     <tr><td>DevOps / équipe applicative</td><td>fichiers YAML, CI/CD, mises à jour</td><td>TP02 à TP06</td></tr>
-    <tr><td>Plateforme / Ops / SRE</td><td>le cluster, l'Ingress, la supervision, les sauvegardes</td><td>TP00</td></tr>
-    <tr><td>Chef de projet / PO</td><td>exigences, planning des mises en production, communication d'incident</td><td>TP07</td></tr>
+    <tr><td>Plateforme / Ops / SRE (fiabilité)</td><td>le cluster, l'Ingress, la supervision, les sauvegardes</td><td>TP00</td></tr>
+    <tr><td>Chef de projet / PO (Product Owner)</td><td>exigences, planning des mises en production, communication d'incident</td><td>TP07</td></tr>
     <tr><td>Sécurité</td><td>droits d'accès, Secrets, sécurité des images</td><td>TP05</td></tr>
   </table>
   <p class="tagline mt">« Qui est d'astreinte si le cluster tombe à 3 h du matin ? »</p>
@@ -402,28 +424,6 @@
   <aside class="notes">Mélanger les profils dans chaque groupe. Éléments de réponse dans le README (bloc repliable).</aside>
 </section>
 
-<!-- ============================ MODULE 8 ============================ -->
-<section class="module">
-  <p class="num">Module 8</p>
-  <h1>Mission finale</h1>
-  <aside class="notes">1h15. Moins guidé : les participants mobilisent tout ce qu'ils ont appris.</aside>
-</section>
-
-<section>
-  <div class="tp">
-    <p class="label">À vous de jouer · environ 1h15, en autonomie</p>
-    <h2>TP07 : mettre en production, puis réparer</h2>
-    <ul>
-      <li>Le cahier des charges : toute l'application dans un namespace <code>prod</code></li>
-      <li>La recette : vérifier soi-même les 7 exigences</li>
-      <li>La chasse aux pannes : votre binôme casse, vous enquêtez, vous réparez</li>
-      <li>La fiche d'incident : symptôme, cause, réparation, prévention</li>
-    </ul>
-    <p class="meta">labs/07-mission-finale</p>
-  </div>
-  <aside class="notes">Passer dans les binômes pour la « recette officielle ». Débriefing : les pannes 2 et 3 ont le même symptôme mais pas la même cause.</aside>
-</section>
-
 <!-- ============================ CLÔTURE ============================ -->
 <section>
   <h2>Deux jours en six idées</h2>
@@ -456,7 +456,7 @@
   <h2>Pour aller plus loin</h2>
   <div class="cols">
     <div class="card green"><h4>Sans technique</h4><ul class="small"><li><i>The Illustrated Children's Guide to Kubernetes</i> (CNCF)</li><li><i>Kubernetes: The Documentary</i> (YouTube)</li><li>Cloud Native Maturity Model (CNCF)</li></ul></div>
-    <div class="card blue"><h4>Pour pratiquer</h4><ul class="small"><li>les TPs du cours, avec minikube</li><li>Killercoda : clusters dans le navigateur</li><li>documentation officielle, en français</li></ul></div>
+    <div class="card blue"><h4>Pour pratiquer</h4><ul class="small"><li>les TP du cours, avec minikube</li><li>Killercoda : clusters dans le navigateur</li><li>documentation officielle, en français</li></ul></div>
   </div>
   <p class="small mt">Tout est dans le dépôt : <code>github.com/bngams/kube-overview-labs</code> · <code>ressources.md</code> · <code>glossaire.md</code></p>
   <aside class="notes">Rappeler d'arrêter ou supprimer son cluster (TP00, section 4).</aside>

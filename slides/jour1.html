@@ -44,7 +44,7 @@
     <div class="card blue"><h4>Jour 1 : des conteneurs à Kubernetes</h4>
       <ul><li>Pourquoi les conteneurs ?</li><li>Image, conteneur, runtime <small>TP01</small></li><li>Pourquoi un orchestrateur ?</li><li>L'état souhaité <small>TP02</small></li><li>Passer à l'échelle <small>TP03</small></li></ul></div>
     <div class="card green"><h4>Jour 2 : Kubernetes dans la vraie vie</h4>
-      <ul><li>Services et Ingress <small>TP04</small></li><li>Configuration, secrets, namespaces <small>TP05</small></li><li>Mettre à jour et réparer <small>TP06</small></li><li>Kubernetes dans votre projet <small>TP08</small></li><li>Mission finale <small>TP07</small></li></ul></div>
+      <ul><li>Services et Ingress <small>TP04</small></li><li>Configuration, secrets, namespaces <small>TP05</small></li><li>Mettre à jour et réparer <small>TP06</small></li><li>Mission finale <small>TP07</small></li><li>Kubernetes dans votre projet <small>TP08</small></li></ul></div>
   </div>
   <aside class="notes">Rassurer : l'objectif n'est pas de devenir administrateur Kubernetes, mais de comprendre ce qu'il fait, pourquoi on l'utilise, et ce qu'on voit dans un vrai projet.</aside>
 </section>
@@ -169,10 +169,10 @@
   <table>
     <tr><th></th><th>Machine virtuelle</th><th>Conteneur</th></tr>
     <tr><td>Poids</td><td>des Go (un système complet)</td><td>des Mo (l'application et ses dépendances)</td></tr>
-    <tr><td>Démarrage</td><td>des minutes</td><td>des secondes</td></tr>
+    <tr><td>Démarrage</td><td>de quelques dizaines de secondes à quelques minutes</td><td>une seconde ou moins</td></tr>
     <tr><td>Isolation</td><td>très forte</td><td>forte, mais le système est partagé</td></tr>
   </table>
-  <aside class="notes">Les deux coexistent : en pratique, les conteneurs tournent souvent dans des machines virtuelles chez le fournisseur cloud.</aside>
+  <aside class="notes">Hyperviseur : le logiciel qui découpe un serveur physique en plusieurs machines virtuelles. Les deux approches coexistent : en pratique, les conteneurs tournent souvent dans des machines virtuelles chez le fournisseur cloud.</aside>
 </section>
 
 <!-- ============================ MODULE 2 ============================ -->
@@ -183,7 +183,7 @@
 </section>
 
 <section>
-  <h2>La recette, le plat, l'assiette</h2>
+  <h2>La recette, le plat surgelé, le plat servi</h2>
   <svg class="diagram" viewBox="0 0 900 300" width="800">
     <rect class="box f-yellow" x="20" y="90" width="170" height="90" rx="12"/><text class="t" x="105" y="128" text-anchor="middle">📝 Dockerfile</text><text class="ts muted" x="105" y="160" text-anchor="middle">la recette</text>
     <path class="arrow" d="M195 135 H 265"/><text class="ts" x="230" y="122" text-anchor="middle">build</text>
@@ -193,7 +193,7 @@
     <rect class="box f-green" x="520" y="125" width="170" height="70" rx="12"/><text class="t" x="605" y="167" text-anchor="middle">🍽️ conteneur</text>
     <text class="ts muted" x="605" y="225" text-anchor="middle">les plats servis</text>
     <rect class="box f-violet" x="720" y="90" width="160" height="90" rx="12"/><text class="t" x="800" y="128" text-anchor="middle">🧊 registre</text><text class="ts muted" x="800" y="160" text-anchor="middle">le congélateur</text>
-    <path class="arrow" d="M355 185 C 355 270, 800 270, 800 185"/><text class="ts" x="580" y="285" text-anchor="middle">push / pull</text>
+    <path class="arrow" style="marker-start:url(#arrow)" d="M355 185 C 355 270, 800 270, 800 185"/><text class="ts" x="580" y="285" text-anchor="middle">push / pull</text>
   </svg>
   <p class="small">Une image, plusieurs conteneurs. Exemple du cours : <code>ghcr.io/bngams/kube-vote:1.0</code> = registre / nom / <b>version (tag)</b>.</p>
   <aside class="notes">On construit l'image une fois, on la range dans un registre, n'importe quelle machine peut la récupérer et en lancer des conteneurs.</aside>
@@ -208,15 +208,16 @@
     <rect class="box f-blue" x="100" y="160" width="260" height="45" rx="8"/><text class="ts" x="230" y="189" text-anchor="middle">Python</text>
     <rect class="box f-green" x="100" y="215" width="260" height="45" rx="8"/><text class="ts" x="230" y="244" text-anchor="middle">petit Linux (79 Mo)</text>
     <text class="tl" x="670" y="30" text-anchor="middle">kube-vote:2.0</text>
-    <rect class="box f-yellow" x="540" y="50" width="260" height="45" rx="8"/><text class="ts" x="670" y="79" text-anchor="middle">code v2 ⬇️ téléchargé</text>
+    <rect class="box f-yellow" x="540" y="50" width="260" height="45" rx="8"/><text class="ts" x="670" y="79" text-anchor="middle">code v2 : téléchargé</text>
+    <rect class="box f-orange" x="540" y="105" width="260" height="45" rx="8"/><text class="ts" x="670" y="134" text-anchor="middle">bibliothèques : téléchargées</text>
     <g class="fragment">
-      <rect class="dash" x="540" y="105" width="260" height="155" rx="8"/>
-      <text class="t" x="670" y="175" text-anchor="middle">Already exists</text><text class="ts muted" x="670" y="205" text-anchor="middle">couches partagées</text>
-      <path class="arrow" d="M535 182 H 370"/>
+      <rect class="dash" x="540" y="160" width="260" height="100" rx="8"/>
+      <text class="ts" x="670" y="200" text-anchor="middle">message : « Already exists »</text><text class="ts muted" x="670" y="228" text-anchor="middle">Python et Linux, partagés</text>
+      <path class="arrow" d="M535 210 H 370"/>
     </g>
   </svg>
   <p class="small">Une mise à jour ne télécharge que ce qui change : c'est pour cela qu'elle est rapide.</p>
-  <aside class="notes">Vu en vrai au TP01 : au téléchargement de la v2, les 4 premières couches affichent « Already exists ».</aside>
+  <aside class="notes">Vu en vrai au TP01 : au téléchargement de la v2, les premières couches (le système et Python) affichent « Already exists ». Les bibliothèques sont réinstallées à chaque construction, d'où leur nouveau téléchargement.</aside>
 </section>
 
 <section>
@@ -230,18 +231,18 @@
     <path class="arrow" d="M695 80 V 105"/>
     <rect class="box f-violet" x="570" y="110" width="250" height="55" rx="10"/><text class="t" x="695" y="146" text-anchor="middle">interface CRI</text>
     <path class="arrow" d="M660 170 L 500 195"/>
-    <rect class="box f-blue" x="325" y="200" width="250" height="50" rx="10"/><text class="t" x="450" y="233" text-anchor="middle">containerd</text>
+    <rect class="box f-blue" x="325" y="200" width="250" height="50" rx="10"/><text class="t" x="450" y="233" text-anchor="middle">containerd (runtime)</text>
     <path class="arrow" d="M450 255 V 270"/>
-    <rect class="box f-blue" x="325" y="275" width="250" height="40" rx="10"/><text class="t" x="450" y="303" text-anchor="middle">runc (runtime)</text>
+    <rect class="box f-blue" x="325" y="275" width="250" height="40" rx="10"/><text class="ts" x="450" y="301" text-anchor="middle">runc (exécution bas niveau)</text>
     <rect class="box f-green" x="200" y="325" width="500" height="40" rx="10"/><text class="t" x="450" y="353" text-anchor="middle">noyau Linux : isole le programme</text>
   </svg>
   <p class="tagline">Kubernetes décide <b>quoi</b> lancer et <b>où</b>. Le runtime sait <b>comment</b>.</p>
-  <aside class="notes">Kubernetes n'a pas besoin de Docker : il parle à un runtime (souvent containerd) via une interface standard. Mais les images sont les mêmes : une image construite avec Docker tourne telle quelle dans Kubernetes.</aside>
+  <aside class="notes">Kubernetes n'a pas besoin de Docker : il parle à un runtime (souvent containerd) via une interface standard. Mais les images sont les mêmes : une image construite avec Docker tourne telle quelle dans Kubernetes. Le cluster cloud (k3s) utilise containerd ; minikube, en mode local, passe encore par Docker. Pour les non-techniques, retenir seulement la phrase du bas.</aside>
 </section>
 
 <section>
   <div class="tp">
-    <p class="label">À vous de jouer · environ 1h15</p>
+    <p class="label">À vous de jouer · environ 1h</p>
     <h2>TP00 + TP01 : environnement et conteneurs</h2>
     <ul>
       <li>Choisir son mode (local ou cloud), démarrer son cluster</li>
@@ -279,7 +280,7 @@
     <path class="arrow" d="M335 205 H 85"/>
     <circle class="box f-white" cx="55" cy="205" r="30"/><text class="ts" x="55" y="211" text-anchor="middle">👀</text>
   </svg>
-  <p class="small">5 morceaux, 3 langages, 2 bases : comme beaucoup d'applications d'entreprise.</p>
+  <p class="small">5 morceaux, 3 langages, une file d'attente et une base : comme beaucoup d'applications d'entreprise. Les flèches suivent le trajet d'un vote.</p>
   <aside class="notes">Présenter le fil rouge. Chaque morceau dans son conteneur. Question : comment fait-on tourner tout ça, en vrai, en production ?</aside>
 </section>
 
@@ -312,7 +313,7 @@
 <section class="module">
   <p class="num">Module 4</p>
   <h1>Kubernetes : l'état souhaité</h1>
-  <aside class="notes">Le module le plus important du cours. Prendre le temps.</aside>
+  <aside class="notes">1h30 avec le TP02. Le module le plus important du cours. Prendre le temps.</aside>
 </section>
 
 <section>
@@ -354,7 +355,7 @@
     <rect class="dash" x="210" y="20" width="270" height="330" rx="16"/><text class="ts muted" x="345" y="45" text-anchor="middle">control plane (le cerveau)</text>
     <rect class="box f-violet" x="235" y="60" width="220" height="50" rx="10"/><text class="ts" x="345" y="92" text-anchor="middle">API : reçoit les demandes</text>
     <rect class="box f-violet" x="235" y="125" width="220" height="50" rx="10"/><text class="ts" x="345" y="157" text-anchor="middle">etcd : mémoire du cluster</text>
-    <rect class="box f-violet" x="235" y="190" width="220" height="50" rx="10"/><text class="ts" x="345" y="222" text-anchor="middle">scheduler : place les pods</text>
+    <rect class="box f-violet" x="235" y="190" width="220" height="50" rx="10"/><text class="ts" x="345" y="222" text-anchor="middle">ordonnanceur : place les pods</text>
     <rect class="box f-violet" x="235" y="255" width="220" height="70" rx="10"/><text class="ts" x="345" y="285" text-anchor="middle">contrôleurs : les boucles</text><text class="ts" x="345" y="310" text-anchor="middle">de réconciliation</text>
     <path class="arrow" d="M485 120 L 560 80"/><path class="arrow" d="M485 180 H 560"/><path class="arrow" d="M485 240 L 560 280"/>
     <rect class="box f-blue" x="565" y="30" width="310" height="95" rx="14"/><text class="ts" x="720" y="55" text-anchor="middle">nœud 1</text>
@@ -364,7 +365,7 @@
     <rect class="box f-blue" x="565" y="240" width="310" height="95" rx="14"/><text class="ts" x="720" y="265" text-anchor="middle">nœud 3</text>
     <rect class="box f-green" x="590" y="280" width="70" height="40" rx="8"/><text class="ts" x="625" y="306" text-anchor="middle">pod</text><rect class="box f-green" x="675" y="280" width="70" height="40" rx="8"/><text class="ts" x="710" y="306" text-anchor="middle">pod</text>
   </svg>
-  <p class="small">Dans un Kubernetes <b>managé</b> (EKS, GKE, AKS…), le fournisseur gère le control plane. Votre cluster de TP n'a qu'un nœud, qui fait tout.</p>
+  <p class="small">Un <b>pod</b> enveloppe un conteneur (parfois plusieurs) : c'est la plus petite unité lancée par Kubernetes. Dans un Kubernetes <b>managé</b> (EKS, GKE, AKS…), le fournisseur gère le control plane. Votre cluster de TP n'a qu'un nœud, qui fait tout.</p>
   <aside class="notes">Rester haut niveau. Sur chaque nœud, un agent (kubelet) dialogue avec le runtime vu au module 2.</aside>
 </section>
 
@@ -379,14 +380,14 @@
     <tr><td>Deployment</td><td>le gestionnaire immobilier, qui veille à ce que les appartements soient occupés</td></tr>
     <tr><td>Service</td><td>l'adresse postale, le standard téléphonique</td></tr>
     <tr><td>Ingress</td><td>la porte d'entrée de la ville</td></tr>
-    <tr><td>ConfigMap / Secret</td><td>le règlement intérieur / le coffre</td></tr>
+    <tr><td>ConfigMap / Secret</td><td>le règlement intérieur / une enveloppe cachetée (pas un coffre-fort : on le verra)</td></tr>
     <tr><td>Namespace</td><td>un quartier</td></tr>
   </table>
   <aside class="notes">Pas besoin d'en faire une métaphore permanente, mais elle aide au début. On y reviendra au jour 2 pour Service, Ingress, ConfigMap, Secret, Namespace.</aside>
 </section>
 
 <section>
-  <h2>L'état souhaité s'écrit en YAML</h2>
+  <h2>L'état souhaité s'écrit en YAML <small>(exemple simplifié)</small></h2>
   <div class="cols">
     <div style="flex:1.3">
 <pre><code class="language-yaml" data-trim>
@@ -421,7 +422,7 @@ spec:
 
 <section>
   <div class="tp">
-    <p class="label">À vous de jouer · environ 1h30</p>
+    <p class="label">À vous de jouer · environ 1h</p>
     <h2>TP02 : premier Deployment</h2>
     <ul>
       <li>Lancer un pod « à la main », le supprimer : il ne revient pas</li>
@@ -431,12 +432,12 @@ spec:
     </ul>
     <p class="meta">labs/02-premier-deployment</p>
   </div>
-  <aside class="notes">Le « moment wow » de la formation : faire observer le --watch pendant la suppression du pod.</aside>
+  <aside class="notes">Le « moment wow » de la formation : faire observer le --watch pendant la suppression du pod. Prévenir : juste après, la page ne répond plus et le tunnel affiche « lost connection to pod » ; c'est normal, on le relance (le Service du TP04 réglera ce problème).</aside>
 </section>
 
 <!-- ============================ MODULE 5a ============================ -->
 <section class="module">
-  <p class="num">Module 5</p>
+  <p class="num">Module 5a</p>
   <h1>Passer à l'échelle</h1>
   <aside class="notes">1 heure avec le TP03.</aside>
 </section>
@@ -461,8 +462,9 @@ spec:
   <svg class="diagram" viewBox="0 0 900 200" width="760">
     <text class="t" x="40" y="45">replicas: 1</text><rect class="box f-yellow" x="260" y="20" width="60" height="40" rx="8"/>
     <g class="fragment"><text class="t" x="40" y="115">replicas: 3</text><rect class="box f-yellow" x="260" y="90" width="60" height="40" rx="8"/><rect class="box f-yellow" x="330" y="90" width="60" height="40" rx="8"/><rect class="box f-yellow" x="400" y="90" width="60" height="40" rx="8"/><text class="ts muted" x="490" y="117">pic de trafic, haute disponibilité</text></g>
-    <g class="fragment"><text class="t" x="40" y="180">replicas: 0</text><rect class="dash" x="260" y="160" width="60" height="40" rx="8"/><text class="ts muted" x="350" y="187">l'application est éteinte, mais toujours décrite : économies la nuit</text></g>
+    <g class="fragment"><text class="t" x="40" y="180">replicas: 0</text><rect class="dash" x="260" y="160" width="60" height="40" rx="8"/><text class="ts muted" x="350" y="187">éteinte, mais toujours décrite : économies la nuit*</text></g>
   </svg>
+  <p class="small">* si le cluster retire les nœuds devenus inutiles.</p>
   <blockquote class="fragment"><b>Le fichier fait foi.</b> Un raccourci (<code>kubectl scale</code>) est effacé par le prochain <code>kubectl apply</code>. On modifie le fichier, idéalement dans Git (c'est l'idée du <b>GitOps</b>).</blockquote>
   <aside class="notes">Au TP03, ils constatent eux-mêmes qu'un kubectl scale est écrasé par le apply suivant.</aside>
 </section>
@@ -485,7 +487,7 @@ spec:
 
 <section>
   <div class="tp">
-    <p class="label">À vous de jouer · environ 1h</p>
+    <p class="label">À vous de jouer · environ 45 min</p>
     <h2>TP03 : passer à l'échelle</h2>
     <ul>
       <li>Passer de 1 à 3 réplicas, supprimer tous les pods d'un coup</li>

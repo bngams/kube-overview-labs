@@ -31,9 +31,9 @@ On la conteneurise, on la déploie, on la casse, on la répare, on la met à jou
 | 9h15 (1h15) | **5b. Service et Ingress** : adresse stable, répartition de charge, porte d'entrée | **TP4** : exposer la voting app (5 composants), l'ouvrir dans son navigateur via son URL perso |
 | 10h30 (45 min) | **5c. ConfigMap, Secret, Namespace** | **TP5** : changer le message d'accueil sans reconstruire l'image |
 | 11h15 (1h15) | **6. Vivre avec Kube** : rolling update, rollback, probes, lire un incident (`CrashLoopBackOff`, `ImagePullBackOff`, `OOMKilled`, `Pending`) | **TP6** : déployer v2, déployer une v3 cassée, diagnostiquer, rollback |
-| 13h30 (1h) | **7. Kubernetes dans votre projet** *(module « chef de projet »)* : qui fait quoi (dev / ops / plateforme), managé (EKS, GKE, AKS, OpenShift), coûts et FinOps, vocabulaire qu'on entend (Helm, GitOps/ArgoCD, CI/CD), quand **ne pas** utiliser Kube | Étude de cas en binôme : « Faut-il du Kube pour ce projet ? » |
-| 14h45 (1h15) | **8. Mission finale** : déployer la voting app complète, puis **chasse aux pannes** : le formateur casse des choses dans chaque namespace, les binômes diagnostiquent | **TP7** |
-| 16h15 (45 min) | **Synthèse** : ressources, fiche glossaire, évaluation | Quiz final |
+| 13h30 (1h15) | **7. Mission finale** : mettre en production la voting app dans un namespace `prod`, puis **chasse aux pannes** : le copilote applique une panne en secret, le pilote diagnostique et répare | **TP7** |
+| 14h45 (1h) | **8. Kubernetes dans votre projet** *(module « chef de projet »)* : qui fait quoi, managé ou non, coûts et FinOps, vocabulaire (Helm, GitOps, CI/CD), quand **ne pas** utiliser Kube | **TP8** : étude de cas en groupes, restitution |
+| 15h45 (45 min) | **Synthèse** : les 6 idées, les questions à poser à son équipe, ressources, glossaire, évaluation | |
 
 ## Deux niveaux dans chaque TP
 
