@@ -9,7 +9,7 @@ Fil rouge : Kubernetes compare en permanence **ce qu'on lui demande** (l'état s
 | TP | Sujet |
 |---|---|
 | [00 — Environnement](labs/00-environnement/README.md) | démarrer son cluster, en local (minikube) ou en cloud (k3d) |
-| 01 — Les conteneurs | *à venir* |
+| [01 — Les conteneurs](labs/01-conteneurs/README.md) | image, conteneur, Dockerfile, runtime… et pourquoi il faut un orchestrateur |
 | [02 — Premier Deployment](labs/02-premier-deployment/README.md) | l'état souhaité, Kubernetes répare tout seul |
 | 03 — Passer à l'échelle | *à venir* |
 

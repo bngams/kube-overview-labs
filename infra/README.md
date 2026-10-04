@@ -80,17 +80,17 @@ docker compose ps
 
 Les sessions sont accessibles à `https://lab-kube1.DOMAIN` … `lab-kube6.DOMAIN`.
 
-### 3. Préchauffer les images (recommandé)
+### 3. Préparer les sessions (la veille)
 
-Pour éviter 6 téléchargements simultanés le jour J, vous pouvez créer les clusters et pré-télécharger les images dans chaque session :
+`prepare-sessions.sh` crée le cluster `tp` de chaque session et y importe les images des TPs Kubernetes (`kube-vote` 1.0/2.0/3.0, redis, postgres, worker, result). Les sessions sont traitées **une par une**, car en créer plusieurs en même temps sature le VPS. Les images du TP01 ne sont **pas** préchargées : leur téléchargement fait partie du TP.
 
 ```bash
-for n in 1 2 3 4 5 6; do
-  docker exec student-$n bash -lc 'k3d cluster create tp --port "8000:80@loadbalancer" && docker pull ghcr.io/bngams/kube-vote:1.0 && k3d image import ghcr.io/bngams/kube-vote:1.0 -c tp'
-done
+./prepare-sessions.sh              # sessions 1 à 6 (environ 1 min 30 par session)
+./prepare-sessions.sh 2 5          # seulement certaines sessions
+RESET=1 ./prepare-sessions.sh 3    # remise à zéro complète d'une session, puis préparation
 ```
 
-Les stagiaires sauteront alors l'étape 2 du TP00 (`k3d cluster create` répondra que le cluster existe déjà).
+Les stagiaires trouvent alors leur cluster prêt à l'étape 2B du TP00 (`k3d cluster list` affiche `tp`).
 
 ## Côté stagiaire
 
@@ -102,7 +102,7 @@ Voir [labs/00-environnement](../labs/00-environnement/README.md), section 2B.
 ## Réinitialiser une session
 
 ```bash
-docker exec student-N bash -lc 'k3d cluster delete tp && k3d cluster create tp --port "8000:80@loadbalancer"'
+RESET=1 ./prepare-sessions.sh N    # supprime cluster, conteneurs et fichiers du binôme, puis prépare
 ```
 
 ## Arrêt / nettoyage
