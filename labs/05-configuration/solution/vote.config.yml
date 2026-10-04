@@ -1,0 +1,8 @@
+# Les réglages de vote, rangés à part : on les change sans toucher à l'image ni au Deployment
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vote-config
+data:
+  OPTION_A: Montagne
+  OPTION_B: Mer
