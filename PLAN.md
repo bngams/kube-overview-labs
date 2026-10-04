@@ -108,11 +108,39 @@ Recommandation : **GitHub comme source unique, et lecture directement sur GitHub
 - [ ] Domaine pour l'Ingress (wildcard DNS)
 - [ ] Dépôt GitHub public ou privé ? Un dépôt privé impose un compte GitHub par stagiaire.
 
-## Prochaines étapes
+## État au 05/10/2026 (fin de préparation)
 
-1. ✅ App : fork [bngams/example-voting-app](https://github.com/bngams/example-voting-app), images publiques `ghcr.io/bngams/kube-vote:{1.0,2.0,3.0}`
-2. ✅ `infra/` : 6 sessions code-server + DinD + k3d, une session validée en local ; DNS scripté (`cloudflare-dns.sh`) ; reste l'installation sur le VPS + test avec 2 ou 3 sessions
-3. ✅ TP00, TP01, TP02, TP03 validés (minikube + k3d sur le VPS) et relus ; ensuite TP04 (Services, Ingress), TP05, TP06, TP07
-3b. ✅ Sessions cloud préparées (`prepare-sessions.sh`) : 6 clusters prêts, images du cluster importées et vérifiées
-4. Slides HTML + schémas Excalidraw
-5. Glossaire + ressources
+| Élément | État |
+|---|---|
+| TP00 à TP07 | ✅ écrits, validés en local (minikube) **et** en cloud (k3d sur le VPS), relus par un agent « regard neuf » puis corrigés |
+| TP08 étude de cas | ✅ écrit (atelier sans ordinateur, éléments de réponse inclus) |
+| Slides | ✅ `slides/jour1.html` (33 slides), `slides/jour2.html` (36 slides), notes formateur (touche `S`) |
+| Tableau blanc | ✅ `diagrams/tableau-blanc.excalidraw` (4 schémas clés à annoter) |
+| Glossaire, ressources | ✅ `glossaire.md`, `ressources.md` (liens vérifiés) |
+| Application | ✅ fork `bngams/example-voting-app` ; images publiques sur ghcr.io (vote 1.0/2.0/3.0 + copies de worker, result, redis, postgres, busybox) |
+| Infra cloud | ✅ VPS : Caddy + 6 sessions `lab-kube1…6`, clusters `tp` prêts, images importées (`prepare-sessions.sh`) |
+
+## Découvertes pendant la préparation (intégrées aux TPs)
+
+- Docker Hub très lent (80 Mo en ~4 min) : toutes les images sont servies par ghcr.io.
+- Les tags officiels `before`/`after` de la voting app sont identiques : d'où le fork de `vote`.
+- Sans sonde de readiness, une version qui plante au démarrage **retire des pods sains** : démonstration centrale du TP06.
+- `kubectl get secret -o yaml` affiche le mot de passe **en clair** dans l'annotation `last-applied-configuration` : moment fort du TP05.
+- Le cluster du TP00 apparaît dans `docker ps` (minikube / k3d) : le TP01 prévient de ne pas y toucher.
+- minikube annonce tous les CPU du poste : l'exercice de saturation du TP03 utilise un pod de 64 CPU, identique pour tous.
+- Pannes du TP07 : une mise à jour progressive **masque** une image cassée ; la panne 4 force `Recreate` pour être visible.
+
+## À relire avant de démarrer
+
+- [ ] Les slides (`slides/jour1.html`, `slides/jour2.html`), avec les notes (`S`).
+- [ ] Les mots de passe des sessions : `/var/www/kube-overview-labs/infra/.env` sur le VPS (S1 à S6).
+- [ ] Tester une session dans son navigateur : `https://lab-kube1.deltavia.com`, puis `k3d cluster list` (le cluster `tp` doit exister).
+- [ ] Mode local : minikube et kubectl sur un poste de la salle (`winget`, ou les pages officielles).
+- [ ] Disque du VPS : 40 Go libres (74 %). Récupérable si besoin : ~10 Go de volumes Docker anonymes inutilisés (anciens, sans doute du cours gitops) et ~9 Go de cache de construction.
+- [ ] L'infra gitops et l'infra kube partagent le VPS et les ports 80/443 : une seule à la fois.
+
+## Après la formation
+
+- `RESET=1 ./prepare-sessions.sh` (sur le VPS, dans `infra/`) remet les 6 sessions à zéro.
+- `./cloudflare-dns.sh --delete` supprime les 24 enregistrements DNS.
+- `docker compose down -v` arrête et supprime l'infra.
