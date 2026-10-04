@@ -1,0 +1,26 @@
+# Panne 4 — ne lisez pas ce fichier avant d'avoir trouvé la panne 😉
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+  labels:
+    app: worker
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+    spec:
+      containers:
+        - name: worker
+          image: ghcr.io/bngams/kube-worker:1.1
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi

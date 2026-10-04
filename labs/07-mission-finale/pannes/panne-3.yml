@@ -1,0 +1,13 @@
+# Panne 3 — ne lisez pas ce fichier avant d'avoir trouvé la panne 😉
+apiVersion: v1
+kind: Service
+metadata:
+  name: result
+  labels:
+    app: result
+spec:
+  selector:
+    app: resultat
+  ports:
+    - port: 80
+      targetPort: 80
