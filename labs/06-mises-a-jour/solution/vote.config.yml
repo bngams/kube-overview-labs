@@ -1,0 +1,9 @@
+# Réglages de vote, version TP06 : VOTE_TITLE est exigé par la version 3.0
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vote-config
+data:
+  OPTION_A: Montagne
+  OPTION_B: Mer
+  VOTE_TITLE: "Votre destination de vacances ?"
