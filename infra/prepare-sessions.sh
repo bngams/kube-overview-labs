@@ -42,6 +42,9 @@ if [ "$RESET" = "1" ]; then
   echo "reset : suppression du cluster, des conteneurs et du travail"
   k3d cluster delete tp >/dev/null 2>&1 || true
   docker ps -aq | xargs -r docker rm -f >/dev/null
+  # images des TPs (kube-vote, vote-perso, python…) : on ne garde que celles de k3d
+  docker images --format '{{.Repository}}:{{.Tag}}' | grep -vE '^(rancher/k3s|ghcr.io/k3d-io/)' | xargs -r docker rmi -f >/dev/null 2>&1 || true
+  docker builder prune -af >/dev/null 2>&1 || true
   find ~ -mindepth 1 -maxdepth 1 ! -name '.*' -exec rm -rf {} +
 fi
 if k3d cluster list tp >/dev/null 2>&1; then
@@ -51,7 +54,22 @@ else
 fi
 kubectl wait --for=condition=Ready node --all --timeout=120s >/dev/null && echo "nœud Ready"
 for img in $CLUSTER_IMAGES; do docker pull -q "$img" >/dev/null; done
-k3d image import $CLUSTER_IMAGES -c tp >/dev/null 2>&1 && echo "images importées dans le cluster"
+# k3d image import peut annoncer un succès sans rien importer : on vérifie, et on réessaie
+missing() {
+  local present; present=$(docker exec k3d-tp-server-0 crictl images | awk 'NR>1 {print $1":"$2}')
+  for img in $CLUSTER_IMAGES; do
+    case "$img" in *:*) ref="$img" ;; *) ref="$img:latest" ;; esac
+    echo "$present" | grep -qE "(^|/)${ref}$" || echo "$img"
+  done
+}
+for attempt in 1 2 3; do
+  todo=$(missing)
+  [ -z "$todo" ] && break
+  k3d image import $todo -c tp >/dev/null 2>&1 || true
+done
+todo=$(missing)
+if [ -n "$todo" ]; then echo "ÉCHEC import : $todo" >&2; exit 1; fi
+echo "images importées dans le cluster (vérifiées)"
 # on les retire du Docker de la session : le TP01 doit les télécharger lui-même
 docker rmi -f $CLUSTER_IMAGES >/dev/null 2>&1 || true
 docker image prune -f >/dev/null
