@@ -187,17 +187,55 @@ Les noms des pods changent d'une réponse à l'autre : le Service **répartit le
 
 🔄 **Échangez les rôles** : le copilote devient pilote.
 
-Il est temps de déployer les 4 autres morceaux de l'application. Ils se trouvent par leur nom, grâce aux Services, comme le pod de test vient de le faire :
+Il est temps de déployer les 4 autres morceaux de l'application. Avant de les appliquer, comparons deux façons de dessiner la même application : telle qu'on la représenterait sur une infrastructure classique, puis telle qu'elle existera dans votre cluster à la fin de ce TP.
+
+**Vue « classique ».** Chaque morceau tourne sur un serveur (ou une VM), et les autres le joignent par son **adresse**, notée dans leur configuration. Pour répartir les visiteurs entre plusieurs exemplaires de `vote`, il faut installer et configurer un répartiteur de charge.
 
 ```mermaid
 flowchart LR
-    V["vote"] -- "redis" --> R[("redis")]
-    W["worker"] -- "redis" --> R
-    W -- "db" --> D[("db")]
-    RS["result"] -- "db" --> D
+    U((Visiteurs)) --> LB["Répartiteur de charge<br/>(à installer)"]
+    LB --> V1["vote<br/>serveur 1"]
+    LB --> V2["vote<br/>serveur 2"]
+    V1 -- "10.0.0.12:6379" --> R[("redis<br/>10.0.0.12")]
+    V2 -- "10.0.0.12:6379" --> R
+    W["worker<br/>10.0.0.13"] -- "10.0.0.12:6379" --> R
+    W -- "10.0.0.14:5432" --> D[("db<br/>10.0.0.14")]
+    RS["result<br/>10.0.0.15"] -- "10.0.0.14:5432" --> D
+    S((Spectateurs)) --> RS
 ```
 
-`vote` dépose chaque vote dans la file d'attente `redis`. `worker` les y prend et les enregistre dans la base `db`. `result` lit la base pour afficher les scores. Chaque flèche est un appel par **nom de Service** : c'est pour cela que les noms `redis` et `db` sont imposés, ils sont écrits dans le code des applications.
+**Vue Kubernetes.** Les mêmes morceaux deviennent des **Deployments** (qui maintiennent leurs pods en vie), précédés de **Services** (un nom et une adresse stables, qui répartissent entre les pods). Plus aucune adresse IP n'apparaît : tout le monde s'appelle par nom de Service. La porte d'entrée (**Ingress**) arrivera à la section 6.
+
+```mermaid
+flowchart LR
+    U((Visiteurs)) --> ING["Ingress<br/>(section 6)"]
+    ING --> SV["Service vote"]
+    subgraph NS["namespace default"]
+        SV --> PV1["pod vote"]
+        SV --> PV2["pod vote"]
+        SV --> PV3["pod vote"]
+        PV1 & PV2 & PV3 -- "redis" --> SR["Service redis"]
+        SR --> PR[("pod redis")]
+        PW["pod worker"] -- "redis" --> SR
+        PW -- "db" --> SD["Service db"]
+        SD --> PD[("pod db")]
+        PRS["pod result"] -- "db" --> SD
+        SRS["Service result"] --> PRS
+    end
+    S((Spectateurs)) -- "tunnel (section 5)" --> SRS
+```
+
+Les deux schémas se comparent ainsi :
+
+| Besoin | Vue classique | Vue Kubernetes |
+|---|---|---|
+| Faire tourner un morceau | un service installé sur un serveur | un **Deployment**, qui maintient ses **pods** |
+| Joindre un autre morceau | son **adresse IP**, écrite dans la configuration | le **nom de son Service** (`redis`, `db`) |
+| Répartir entre plusieurs exemplaires | un répartiteur de charge à installer et configurer | le **Service**, automatiquement |
+| Ouvrir l'application aux visiteurs | un reverse proxy, des règles de pare-feu | un **Ingress** |
+| Un exemplaire tombe en panne | intervention humaine | le Deployment le recrée, le Service l'oublie |
+
+`vote` dépose chaque vote dans la file d'attente `redis`. `worker` les y prend et les enregistre dans la base `db`. `result` lit la base pour afficher les scores. Chaque appel se fait par **nom de Service** : c'est pour cela que les noms `redis` et `db` sont imposés, ils sont écrits dans le code des applications. `worker`, que personne n'appelle, n'a pas besoin de Service.
 
 Les fichiers sont fournis dans le dossier [`assets/`](assets/). Chacun contient **deux objets** séparés par `---` : un Deployment et son Service (sauf `worker`, que personne n'appelle et qui n'a donc pas besoin de Service). `kubectl apply` sait lire un fichier directement depuis une adresse web : appliquez-les un par un.
 
