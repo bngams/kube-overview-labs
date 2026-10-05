@@ -1,4 +1,4 @@
-# État final du TP05 : 3 réplicas, réglages lus dans la ConfigMap vote-config
+# État final du TP07 : version 3.0, réglages dans vote-config, sondes de santé sur /healthz
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -17,12 +17,22 @@ spec:
     spec:
       containers:
         - name: vote
-          image: ghcr.io/bngams/kube-vote:1.0
+          image: ghcr.io/bngams/kube-vote:3.0
           ports:
             - containerPort: 80
           envFrom:
             - configMapRef:
                 name: vote-config
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            periodSeconds: 10
           resources:
             requests:
               cpu: 100m

@@ -27,13 +27,14 @@ On la conteneurise, on la déploie, on la casse, on la répare, on la met à jou
 
 | Horaire | Module | Pratique |
 |---|---|---|
-| 9h00 (15 min) | Rappel J1 | « Explique à ton voisin » |
-| 9h15 (1h15) | **5b. Service et Ingress** : adresse stable, répartition de charge, porte d'entrée | **TP4** : exposer la voting app (5 composants), l'ouvrir dans son navigateur via son URL perso |
-| 10h30 (45 min) | **5c. ConfigMap, Secret, Namespace** | **TP5** : changer le message d'accueil sans reconstruire l'image |
-| 11h15 (1h15) | **6. Vivre avec Kube** : rolling update, rollback, probes, lire un incident (`CrashLoopBackOff`, `ImagePullBackOff`, `OOMKilled`, `Pending`) | **TP6** : déployer v2, déployer une v3 cassée, diagnostiquer, rollback |
-| 13h30 (1h15) | **7. Mission finale** : mettre en production la voting app dans un namespace `prod`, puis **chasse aux pannes** : le copilote applique une panne en secret, le pilote diagnostique et répare | **TP7** |
-| 14h45 (1h) | **8. Kubernetes dans votre projet** *(module « chef de projet »)* : qui fait quoi, managé ou non, coûts et FinOps, vocabulaire (Helm, GitOps, CI/CD), quand **ne pas** utiliser Kube | **TP8** : étude de cas en groupes, restitution |
-| 15h45 (45 min) | **Synthèse** : les 6 idées, les questions à poser à son équipe, ressources, glossaire, évaluation | |
+| 9h00 (15 min) | Rappel J1 | « Expliquez à votre voisin » |
+| 9h15 (1h15) | **5b. Services et Ingress** : adresse stable, répartition de charge, porte d'entrée | **TP04** : la voting app complète, on vote, Ingress |
+| 10h30 (40 min) | **5c. Isoler et encadrer** : namespaces, quotas, NetworkPolicies, ouverture RBAC / Pod Security / Kyverno | **TP05** : ranger l'appli dans `vote-app`, quota, fermer le réseau (+ editor.networkpolicy.io) |
+| 11h20 (40 min) | **5d. Configuration et secrets** | **TP06** : ConfigMap, Secret (et ses limites) |
+| 13h30 (50 min) | **6. Mettre à jour et réparer** : rolling update, rollback, sondes, catalogue des pannes | **TP07** |
+| 14h20 (1h) | **7. Mission finale** : mise en production dans `prod`, puis chasse aux pannes (2 à 4 selon le temps) | **TP08** |
+| 15h30 (45 min) | **8. Kubernetes dans votre projet** *(module « chef de projet »)* | **TP09** : étude de cas en groupes |
+| 16h15 (30 min) | **Synthèse** : les 6 idées, les questions à poser à son équipe, ressources, évaluation | |
 
 ## Deux niveaux dans chaque TP
 
@@ -75,7 +76,7 @@ Choisie le 04/10/2026. On utilise la voting app (vote Python, redis, worker .NET
 │   ├── 01-conteneurs/README.md
 │   ├── 02-premier-deployment/README.md
 │   ├── …
-│   └── 07-mission-finale/{README.md, manifests/, solution/}
+│   └── 08-mission-finale/{README.md, pannes/, solution/}
 ├── app/                   # voting app : fork de vote (v1, v2, v3 cassée) + workflow images
 ├── infra/                 # k3s, namespaces, RBAC, quotas, terminaux web, scripts
 ├── ressources.md
@@ -112,8 +113,8 @@ Recommandation : **GitHub comme source unique, et lecture directement sur GitHub
 
 | Élément | État |
 |---|---|
-| TP00 à TP07 | ✅ écrits, validés en local (minikube) **et** en cloud (k3d sur le VPS), relus par un agent « regard neuf » puis corrigés |
-| TP08 étude de cas | ✅ écrit (atelier sans ordinateur, éléments de réponse inclus) |
+| TP00 à TP08 | ✅ écrits, validés en local (minikube) **et** en cloud (k3d sur le VPS), relus par un agent « regard neuf » puis corrigés |
+| TP09 étude de cas | ✅ écrit (atelier sans ordinateur, éléments de réponse inclus) |
 | Slides | ✅ `slides/jour1.html` (33 slides), `slides/jour2.html` (36 slides), notes formateur (touche `S`) |
 | Tableau blanc | ✅ `diagrams/tableau-blanc.excalidraw` (4 schémas clés à annoter) |
 | Glossaire, ressources | ✅ `glossaire.md`, `ressources.md` (liens vérifiés) |
@@ -124,11 +125,12 @@ Recommandation : **GitHub comme source unique, et lecture directement sur GitHub
 
 - Docker Hub très lent (80 Mo en ~4 min) : toutes les images sont servies par ghcr.io.
 - Les tags officiels `before`/`after` de la voting app sont identiques : d'où le fork de `vote`.
-- Sans sonde de readiness, une version qui plante au démarrage **retire des pods sains** : démonstration centrale du TP06.
-- `kubectl get secret -o yaml` affiche le mot de passe **en clair** dans l'annotation `last-applied-configuration` : moment fort du TP05.
+- Sans sonde de readiness, une version qui plante au démarrage **retire des pods sains** : démonstration centrale du TP07.
+- `kubectl get secret -o yaml` affiche le mot de passe **en clair** dans l'annotation `last-applied-configuration` : moment fort du TP06.
+- Réorganisation (06/10/2026) : nouveau TP05 « Isoler et encadrer » (namespace `vote-app`, quota, NetworkPolicies, Kyverno en ouverture) ; les TPs suivants sont décalés (06 à 09). En local, les règles réseau exigent minikube avec `--cni=calico` (un `minikube start` sur un cluster existant ignore l'option sans prévenir : il faut `minikube delete`).
 - Le cluster du TP00 apparaît dans `docker ps` (minikube / k3d) : le TP01 prévient de ne pas y toucher.
 - minikube annonce tous les CPU du poste : l'exercice de saturation du TP03 utilise un pod de 64 CPU, identique pour tous.
-- Pannes du TP07 : une mise à jour progressive **masque** une image cassée ; la panne 4 force `Recreate` pour être visible.
+- Pannes du TP08 : une mise à jour progressive **masque** une image cassée ; la panne 4 force `Recreate` pour être visible.
 
 ## À relire avant de démarrer
 

@@ -43,10 +43,10 @@
 <section>
   <h2>Au programme aujourd'hui</h2>
   <div class="cols">
-    <div class="card blue"><h4>Matin</h4><ul><li>Services et Ingress <small>TP04</small></li><li>Configuration, secrets, namespaces <small>TP05</small></li><li>Mettre à jour et réparer <small>TP06</small></li></ul></div>
-    <div class="card green"><h4>Après-midi</h4><ul><li>Mission finale et chasse aux pannes <small>TP07</small></li><li>Kubernetes dans votre projet <small>TP08</small></li><li>Synthèse</li></ul></div>
+    <div class="card blue"><h4>Matin</h4><ul><li>Services et Ingress <small>TP04</small></li><li>Isoler et encadrer <small>TP05</small></li><li>Configuration et secrets <small>TP06</small></li></ul></div>
+    <div class="card green"><h4>Après-midi</h4><ul><li>Mettre à jour et réparer <small>TP07</small></li><li>Mission finale et chasse aux pannes <small>TP08</small></li><li>Kubernetes dans votre projet <small>TP09</small></li><li>Synthèse</li></ul></div>
   </div>
-  <aside class="notes">La mission finale vient avant l'étude de cas : celle-ci s'appuie sur le cahier des charges et la fiche d'incident du TP07.</aside>
+  <aside class="notes">Journée dense : si le temps manque, la mission finale peut se limiter à 2 ou 3 pannes. La mission vient avant l'étude de cas, qui s'appuie sur son cahier des charges et sa fiche d'incident.</aside>
 </section>
 
 <!-- ============================ MODULE 5b ============================ -->
@@ -152,8 +152,101 @@
 <!-- ============================ MODULE 5c ============================ -->
 <section class="module">
   <p class="num">Module 5c</p>
-  <h1>Configuration, secrets et namespaces</h1>
-  <aside class="notes">45 minutes avec le TP05.</aside>
+  <h1>Isoler et encadrer</h1>
+  <aside class="notes">40 minutes avec le TP05. Fil narratif : les Services rendent tout joignable… par tout le monde. Il faut ranger, plafonner et fermer.</aside>
+</section>
+
+<section>
+  <h2>Les Services ne suffisent pas</h2>
+  <svg class="diagram" viewBox="0 0 900 260" width="760">
+    <rect class="box f-violet" x="40" y="40" width="170" height="60" rx="12"/><text class="t" x="125" y="78" text-anchor="middle">worker</text>
+    <rect class="box f-green" x="40" y="160" width="170" height="60" rx="12"/><text class="t" x="125" y="198" text-anchor="middle">result</text>
+    <rect class="box f-blue" x="380" y="95" width="170" height="70" rx="12"/><text class="t" x="465" y="137" text-anchor="middle">db</text>
+    <path class="arrow" d="M215 70 L 375 115"/><path class="arrow" d="M215 190 L 375 145"/>
+    <rect class="box f-red" x="690" y="95" width="180" height="70" rx="12"/><text class="ts" x="780" y="127" text-anchor="middle">pod inconnu</text><text class="ts" x="780" y="152" text-anchor="middle">(compromis ?)</text>
+    <path class="arrow-red" d="M685 130 H 555"/><text class="ts red-text" x="620" y="118" text-anchor="middle">ouvert !</text>
+  </svg>
+  <ul>
+    <li>Par défaut, <b>tout le monde peut parler à tout le monde</b> dans le cluster</li>
+    <li>Rien ne limite ce qu'une équipe <b>consomme</b></li>
+    <li>Tout s'entasse dans le namespace <code>default</code></li>
+  </ul>
+  <aside class="notes">Au TP05, un simple pod de test joint la base de données sans aucun obstacle. C'est le point de départ.</aside>
+</section>
+
+<section>
+  <h2>Les namespaces : des quartiers</h2>
+  <svg class="diagram" viewBox="0 0 900 230" width="760">
+    <rect class="dash" x="40" y="20" width="370" height="190" rx="18"/><text class="t" x="225" y="50" text-anchor="middle">vote-app</text>
+    <rect class="box f-yellow" x="70" y="75" width="140" height="50" rx="10"/><text class="ts" x="140" y="107" text-anchor="middle">vote</text>
+    <rect class="box f-red" x="240" y="75" width="140" height="50" rx="10"/><text class="ts" x="310" y="107" text-anchor="middle">redis</text>
+    <rect class="box f-blue" x="70" y="140" width="140" height="50" rx="10"/><text class="ts" x="140" y="172" text-anchor="middle">db</text>
+    <rect class="box f-green" x="240" y="140" width="140" height="50" rx="10"/><text class="ts" x="310" y="172" text-anchor="middle">quota</text>
+    <rect class="dash" x="490" y="20" width="370" height="190" rx="18"/><text class="t" x="675" y="50" text-anchor="middle">autre-equipe</text>
+    <rect class="box f-yellow" x="520" y="75" width="140" height="50" rx="10"/><text class="ts" x="590" y="107" text-anchor="middle">vote</text>
+    <rect class="box f-grey" x="690" y="75" width="140" height="50" rx="10"/><text class="ts" x="760" y="107" text-anchor="middle">…</text>
+  </svg>
+  <ul class="small">
+    <li>Même nom dans deux namespaces : aucun conflit. On évite le fourre-tout <code>default</code>.</li>
+    <li>On y attache des <b>quotas</b>, des <b>droits</b> et des <b>règles réseau</b>. Supprimer un namespace supprime tout son contenu.</li>
+    <li>Un namespace ne coupe pas le réseau à lui seul : il faut des <b>NetworkPolicies</b>.</li>
+  </ul>
+  <aside class="notes">Au TP05, l'application est rangée dans vote-app, qui devient le namespace par défaut du terminal (kubectl config set-context) : les TPs suivants n'ont pas besoin de -n.</aside>
+</section>
+
+<section>
+  <h2>Tout fermer, puis n'ouvrir que le nécessaire</h2>
+  <svg class="diagram" viewBox="0 0 900 270" width="780">
+    <circle class="box f-white" cx="60" cy="135" r="40"/><text class="ts" x="60" y="141" text-anchor="middle">🌍</text>
+    <path class="arrow" d="M105 115 L 195 70"/><path class="arrow" d="M105 155 L 195 205"/><text class="ts" x="140" y="80">80</text>
+    <rect class="box f-yellow" x="200" y="40" width="150" height="60" rx="12"/><text class="t" x="275" y="78" text-anchor="middle">vote</text>
+    <rect class="box f-green" x="200" y="175" width="150" height="60" rx="12"/><text class="t" x="275" y="213" text-anchor="middle">result</text>
+    <rect class="box f-violet" x="420" y="107" width="150" height="60" rx="12"/><text class="t" x="495" y="145" text-anchor="middle">worker</text>
+    <rect class="box f-red" x="650" y="40" width="150" height="60" rx="12"/><text class="t" x="725" y="78" text-anchor="middle">redis</text>
+    <rect class="box f-blue" x="650" y="175" width="150" height="60" rx="12"/><text class="t" x="725" y="213" text-anchor="middle">db</text>
+    <path class="arrow" d="M355 70 H 645"/><path class="arrow" d="M575 125 L 645 85"/><path class="arrow" d="M575 150 L 645 195"/><path class="arrow" d="M355 205 H 645"/>
+    <text class="ts muted" x="500" y="60" text-anchor="middle">6379</text><text class="ts muted" x="500" y="230" text-anchor="middle">5432</text>
+  </svg>
+  <p class="small">Une <b>NetworkPolicy</b> dit, pour des pods repérés par leur étiquette : « qui peut me contacter, sur quel port ». Tout le reste est refusé.</p>
+  <p class="small">Pour s'entraîner visuellement : <a href="https://editor.networkpolicy.io/">editor.networkpolicy.io</a></p>
+  <aside class="notes">Les règles nécessitent un réseau capable de les appliquer : k3s le fait, minikube seulement avec --cni=calico (d'où la recréation du cluster local au début du TP05).</aside>
+</section>
+
+<section>
+  <h2>Les règles d'un namespace</h2>
+  <table>
+    <tr><th>Règle</th><th>Question</th></tr>
+    <tr><td>ResourceQuota, LimitRange</td><td>combien ce namespace peut-il consommer ?</td></tr>
+    <tr><td>NetworkPolicy</td><td>qui peut parler à qui ?</td></tr>
+    <tr><td>RBAC</td><td>qui a le droit de faire quoi ?</td></tr>
+    <tr><td>Pod Security</td><td>quel niveau de sécurité pour les pods ?</td></tr>
+  </table>
+  <p class="mt">Et pour vérifier tout cela automatiquement : des moteurs de politiques comme <b>Kyverno</b> ou <b>OPA Gatekeeper</b>.</p>
+  <p class="small">« toute image vient de notre registre », « tout pod a des réservations », « tout namespace reçoit un quota »…</p>
+  <aside class="notes">En réunion : « le déploiement a été refusé par une policy » = un moteur comme Kyverno a bloqué un fichier non conforme. Pas de manipulation sur ce point, c'est une ouverture.</aside>
+</section>
+
+<section>
+  <div class="tp">
+    <p class="label">À vous de jouer · environ 30 min</p>
+    <h2>TP05 : isoler et encadrer</h2>
+    <ul>
+      <li>Mode local : recréer minikube avec Calico</li>
+      <li>Ranger l'application dans le namespace <code>vote-app</code></li>
+      <li>Constater que n'importe quel pod joint la base</li>
+      <li>Un quota qu'on dépasse</li>
+      <li>S'entraîner sur l'éditeur visuel, puis fermer le réseau</li>
+    </ul>
+    <p class="meta">labs/05-isolation</p>
+  </div>
+  <aside class="notes">En local, la recréation de minikube prend environ 5 minutes : la lancer dès le début du module.</aside>
+</section>
+
+<!-- ============================ MODULE 5d ============================ -->
+<section class="module">
+  <p class="num">Module 5d</p>
+  <h1>Configuration et secrets</h1>
+  <aside class="notes">35 minutes avec le TP06.</aside>
 </section>
 
 <section>
@@ -169,7 +262,7 @@
     <rect class="box f-yellow" x="640" y="199" width="220" height="65" rx="12"/><text class="ts" x="750" y="237" text-anchor="middle">ConfigMap prod</text>
   </svg>
   <p class="small">La <b>ConfigMap</b> range les réglages à part de l'image. Mais attention : une variable d'environnement est lue <b>au démarrage</b>. Changer la ConfigMap impose de <b>redémarrer</b> les pods.</p>
-  <aside class="notes">Au TP05, ils changent la question du vote sans reconstruire l'image, puis constatent qu'une ConfigMap modifiée n'est prise en compte qu'après kubectl rollout restart.</aside>
+  <aside class="notes">Au TP06, ils changent la question du vote sans reconstruire l'image, puis constatent qu'une ConfigMap modifiée n'est prise en compte qu'après kubectl rollout restart.</aside>
 </section>
 
 <section>
@@ -179,38 +272,19 @@
     <div class="card green"><h4>Ce qui le protège vraiment</h4><ul><li>les <b>droits d'accès</b> : qui peut lire les Secrets ?</li><li>le <b>chiffrement</b> de la base du cluster, à activer</li><li>un coffre dédié : Vault, coffre du cloud, Sealed Secrets, SOPS</li></ul></div>
   </div>
   <blockquote class="mt">Un fichier de Secret ne va <b>jamais</b> en clair dans Git.</blockquote>
-  <aside class="notes">Au TP05, ils découvrent le mot de passe en clair dans l'annotation last-applied-configuration, puis le décodent. Effet garanti.</aside>
+  <aside class="notes">Au TP06, ils découvrent le mot de passe en clair dans l'annotation last-applied-configuration, puis le décodent. Effet garanti.</aside>
 </section>
 
-<section>
-  <h2>Les namespaces : des quartiers</h2>
-  <svg class="diagram" viewBox="0 0 900 250" width="760">
-    <rect class="dash" x="40" y="30" width="370" height="190" rx="18"/><text class="t" x="225" y="60" text-anchor="middle">default</text>
-    <rect class="box f-yellow" x="70" y="85" width="140" height="50" rx="10"/><text class="ts" x="140" y="117" text-anchor="middle">vote</text>
-    <rect class="box f-red" x="240" y="85" width="140" height="50" rx="10"/><text class="ts" x="310" y="117" text-anchor="middle">redis</text>
-    <rect class="box f-green" x="70" y="150" width="310" height="45" rx="10"/><text class="ts" x="225" y="179" text-anchor="middle">ConfigMap vote-config</text>
-    <rect class="dash" x="490" y="30" width="370" height="190" rx="18"/><text class="t" x="675" y="60" text-anchor="middle">recette</text>
-    <rect class="box f-yellow" x="520" y="85" width="140" height="50" rx="10"/><text class="ts" x="590" y="117" text-anchor="middle">vote</text>
-    <rect class="dash" x="520" y="150" width="310" height="45" rx="10"/><text class="ts red-text" x="675" y="179" text-anchor="middle">pas de ConfigMap ici !</text>
-  </svg>
-  <ul class="small">
-    <li>Même nom dans deux namespaces : aucun conflit. Les réglages et les noms de Services sont <b>par namespace</b>.</li>
-    <li>On y attache des <b>droits</b> et des <b>quotas</b> (répartition des coûts). Supprimer un namespace supprime tout son contenu.</li>
-    <li>Pas de cloison réseau par défaut : il faut des <i>NetworkPolicies</i>. La production est souvent sur un cluster séparé.</li>
-  </ul>
-  <aside class="notes">Au TP05, vote ne démarre pas dans recette : CreateContainerConfigError, car la ConfigMap n'existe que dans default.</aside>
-</section>
 
 <section>
   <div class="tp">
     <p class="label">À vous de jouer · environ 35 min</p>
-    <h2>TP05 : configuration, secrets et namespaces</h2>
+    <h2>TP06 : configuration et secrets</h2>
     <ul>
       <li>Changer la question du vote sans reconstruire l'image</li>
       <li>Ranger le mot de passe de la base dans un Secret… et le retrouver en clair</li>
-      <li>Créer un environnement de recette, le supprimer d'un coup</li>
     </ul>
-    <p class="meta">labs/05-configuration</p>
+    <p class="meta">labs/06-configuration</p>
   </div>
   <aside class="notes">Les votes repartent de zéro quand la base est remplacée : c'est voulu (pas de volume persistant), à commenter.</aside>
 </section>
@@ -219,7 +293,7 @@
 <section class="module">
   <p class="num">Module 6</p>
   <h1>Mettre à jour et réparer</h1>
-  <aside class="notes">1h15 avec le TP06. Le module qui parle le plus aux chefs de projet : mises en production et incidents.</aside>
+  <aside class="notes">1h15 avec le TP07. Le module qui parle le plus aux chefs de projet : mises en production et incidents.</aside>
 </section>
 
 <section>
@@ -235,7 +309,7 @@
     <rect class="box f-violet" x="120" y="230" width="110" height="45" rx="8"/><text class="ts" x="175" y="259" text-anchor="middle">v2</text><rect class="box f-violet" x="245" y="230" width="110" height="45" rx="8"/><text class="ts" x="300" y="259" text-anchor="middle">v2</text><rect class="box f-violet" x="370" y="230" width="110" height="45" rx="8"/><text class="ts" x="425" y="259" text-anchor="middle">v2</text><text class="ts muted" x="500" y="259">aucune coupure</text></g>
   </svg>
   <p class="small">Livrer en pleine journée, sans « fenêtre de maintenance »… à condition que l'application signale quand elle est vraiment prête (les sondes, plus loin). Pendant quelques secondes, les deux versions cohabitent.</p>
-  <aside class="notes">Au TP06, en rechargeant la page pendant la mise à jour, on voit v1.0 et v2.0 alterner. Comme les deux versions coexistent, les changements de base de données doivent rester compatibles avec l'ancienne version.</aside>
+  <aside class="notes">Au TP07, en rechargeant la page pendant la mise à jour, on voit v1.0 et v2.0 alterner. Comme les deux versions coexistent, les changements de base de données doivent rester compatibles avec l'ancienne version.</aside>
 </section>
 
 <section>
@@ -256,9 +330,9 @@
     <div class="card blue"><h4>🚦 Readiness : « es-tu prêt ? »</h4><p class="small">Sinon : le pod ne reçoit pas de visiteurs, et une mise à jour <b>attend</b> au lieu de remplacer des pods sains.</p></div>
     <div class="card green"><h4>💓 Liveness : « es-tu vivant ? »</h4><p class="small">Sinon : Kubernetes <b>redémarre</b> le conteneur, utile si l'application est bloquée sans avoir planté.</p></div>
   </div>
-  <p class="mt">Au TP06, vous verrez : sans sonde, une version cassée <b>retire des pods sains</b> ; avec, l'application reste à <b>3/3</b>.</p>
+  <p class="mt">Au TP07, vous verrez : sans sonde, une version cassée <b>retire des pods sains</b> ; avec, l'application reste à <b>3/3</b>.</p>
   <p class="tagline fragment">Question à poser à toute équipe : nos applications ont-elles des sondes de santé ?</p>
-  <aside class="notes">C'est la démonstration la plus forte du TP06 : même erreur, avec et sans sondes.</aside>
+  <aside class="notes">C'est la démonstration la plus forte du TP07 : même erreur, avec et sans sondes.</aside>
 </section>
 
 <section>
@@ -290,13 +364,13 @@
     <rect class="box f-green" x="750" y="40" width="140" height="80" rx="12"/><text class="ts" x="820" y="75" text-anchor="middle">5. réparer</text><text class="ts muted" x="820" y="100" text-anchor="middle">apply</text>
   </svg>
   <p class="small">Puis on documente : symptôme, cause, réparation, prévention. C'est le <b>post-mortem</b>, souvent présenté par le chef de projet.</p>
-  <aside class="notes">Cette méthode sert directement à la chasse aux pannes du TP07.</aside>
+  <aside class="notes">Cette méthode sert directement à la chasse aux pannes du TP08.</aside>
 </section>
 
 <section>
   <div class="tp">
-    <p class="label">À vous de jouer · environ 1h</p>
-    <h2>TP06 : mettre à jour et réparer</h2>
+    <p class="label">À vous de jouer · environ 50 min</p>
+    <h2>TP07 : mettre à jour et réparer</h2>
     <ul>
       <li>Déployer la v2 sans coupure</li>
       <li>La v3 plante : diagnostiquer avec <code>describe</code> et <code>logs</code></li>
@@ -304,7 +378,7 @@
       <li>Ajouter des sondes : la même erreur ne touche plus personne</li>
       <li>Provoquer un <code>ImagePullBackOff</code> et un <code>OOMKilled</code></li>
     </ul>
-    <p class="meta">labs/06-mises-a-jour</p>
+    <p class="meta">labs/07-mises-a-jour</p>
   </div>
   <aside class="notes">Rappeler : un seul rollout undo à la fois (deux undo successifs ramènent la version cassée).</aside>
 </section>
@@ -318,15 +392,15 @@
 
 <section>
   <div class="tp">
-    <p class="label">À vous de jouer · environ 1h15, en autonomie</p>
-    <h2>TP07 : mettre en production, puis réparer</h2>
+    <p class="label">À vous de jouer · environ 1h, en autonomie</p>
+    <h2>TP08 : mettre en production, puis réparer</h2>
     <ul>
       <li>Le cahier des charges : toute l'application dans un namespace <code>prod</code></li>
       <li>La recette : vérifier soi-même les 7 exigences</li>
       <li>La chasse aux pannes : votre binôme casse, vous enquêtez, vous réparez</li>
       <li>La fiche d'incident : symptôme, cause, réparation, prévention</li>
     </ul>
-    <p class="meta">labs/07-mission-finale</p>
+    <p class="meta">labs/08-mission-finale</p>
   </div>
   <aside class="notes">Passer dans les binômes pour la « recette officielle ». Si le temps manque, 2 ou 3 pannes suffisent. Débriefing : les pannes 2 et 3 ont le même symptôme mais pas la même cause.</aside>
 </section>
@@ -335,7 +409,7 @@
 <section class="module">
   <p class="num">Module 8</p>
   <h1>Kubernetes dans votre projet</h1>
-  <aside class="notes">1 heure avec l'étude de cas (TP08). Le module pensé pour les chefs de projet ; les profils techniques jouent l'équipe interrogée.</aside>
+  <aside class="notes">1 heure avec l'étude de cas (TP09). Le module pensé pour les chefs de projet ; les profils techniques jouent l'équipe interrogée.</aside>
 </section>
 
 <section>
@@ -376,11 +450,11 @@
   <h2>Qui fait quoi ?</h2>
   <table>
     <tr><th>Rôle</th><th>Responsabilités</th><th>Pendant la formation</th></tr>
-    <tr><td>Développeurs</td><td>code, Dockerfile, sondes, configuration attendue</td><td>TP01, TP06</td></tr>
-    <tr><td>DevOps / équipe applicative</td><td>fichiers YAML, CI/CD, mises à jour</td><td>TP02 à TP06</td></tr>
+    <tr><td>Développeurs</td><td>code, Dockerfile, sondes, configuration attendue</td><td>TP01, TP07</td></tr>
+    <tr><td>DevOps / équipe applicative</td><td>fichiers YAML, CI/CD, mises à jour</td><td>TP02 à TP07</td></tr>
     <tr><td>Plateforme / Ops / SRE (fiabilité)</td><td>le cluster, l'Ingress, la supervision, les sauvegardes</td><td>TP00</td></tr>
-    <tr><td>Chef de projet / PO (Product Owner)</td><td>exigences, planning des mises en production, communication d'incident</td><td>TP07</td></tr>
-    <tr><td>Sécurité</td><td>droits d'accès, Secrets, sécurité des images</td><td>TP05</td></tr>
+    <tr><td>Chef de projet / PO (Product Owner)</td><td>exigences, planning des mises en production, communication d'incident</td><td>TP08</td></tr>
+    <tr><td>Sécurité</td><td>droits d'accès, règles réseau, Secrets, sécurité des images</td><td>TP05, TP06</td></tr>
   </table>
   <p class="tagline mt">« Qui est d'astreinte si le cluster tombe à 3 h du matin ? »</p>
   <aside class="notes">Les intitulés varient selon les organisations ; l'important est que chaque case ait un nom avant la mise en production.</aside>
@@ -412,14 +486,14 @@
 <section>
   <div class="tp">
     <p class="label">Atelier · environ 1h, sans ordinateur</p>
-    <h2>TP08 : étude de cas</h2>
+    <h2>TP09 : étude de cas</h2>
     <ul>
       <li>4 projets fictifs : office de tourisme, réservation, application métier, données de santé</li>
       <li>Kubernetes ou pas ? Managé ou non ? Qui fait quoi ? Combien ?</li>
       <li>Les 3 questions à poser à l'équipe technique</li>
       <li>Restitution de 5 minutes par groupe</li>
     </ul>
-    <p class="meta">labs/08-etude-de-cas</p>
+    <p class="meta">labs/09-etude-de-cas</p>
   </div>
   <aside class="notes">Mélanger les profils dans chaque groupe. Éléments de réponse dans le README (bloc repliable).</aside>
 </section>
@@ -448,7 +522,7 @@
     <li>Les fichiers YAML sont-ils dans <b>Git</b> ? Les mêmes images en recette et en production ?</li>
     <li>Combien coûte chaque environnement ? Les réservations sont-elles réalistes ?</li>
   </ul>
-  <p class="small">La liste complète est dans l'étude de cas (TP08, section 6).</p>
+  <p class="small">La liste complète est dans l'étude de cas (TP09, section 6).</p>
   <aside class="notes">C'est probablement la slide la plus utile pour les chefs de projet : leur conseiller de la photographier.</aside>
 </section>
 

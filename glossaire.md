@@ -21,7 +21,7 @@ Les mots de la formation, expliqués simplement, avec le TP où vous les avez re
 | **Nœud** (*node*) | Un des serveurs du cluster, qui fait tourner des pods. Un « bâtiment » de la ville | 00, 03 |
 | **kubectl** | La « télécommande » de Kubernetes : l'outil en ligne de commande qui lui parle | 00 |
 | **Namespace** | Un espace de rangement dans le cluster, pour séparer environnements, équipes ou projets. Un « quartier » | 05 |
-| **Control plane** | Le « cerveau » du cluster (API, ordonnanceur, base etcd…), géré par le fournisseur dans un Kubernetes managé | 05, 08 |
+| **Control plane** | Le « cerveau » du cluster (API, ordonnanceur, base etcd…), géré par le fournisseur dans un Kubernetes managé | 09 |
 | **Ordonnanceur** (*scheduler*) | Le composant qui choisit sur quel nœud placer chaque pod | 03 |
 
 ## Faire tourner une application
@@ -30,14 +30,14 @@ Les mots de la formation, expliqués simplement, avec le TP où vous les avez re
 |---|---|---|
 | **Pod** | La plus petite unité que Kubernetes fait tourner : un ou plusieurs conteneurs. Un exemplaire de l'application. Un « appartement » | 02 |
 | **Deployment** | L'objet qui maintient un nombre voulu de pods identiques et gère leurs mises à jour. Le « gestionnaire immobilier » | 02 |
-| **ReplicaSet** | L'intermédiaire créé par le Deployment, qui maintient le nombre de pods d'une version donnée | 02, 03, 06 |
+| **ReplicaSet** | L'intermédiaire créé par le Deployment, qui maintient le nombre de pods d'une version donnée | 02, 03, 07 |
 | **Réplica** | Une copie identique d'un pod. « 3 réplicas » = 3 exemplaires | 03 |
 | **État souhaité** | Ce que l'on demande à Kubernetes (« 3 exemplaires de vote en v2 »), décrit dans un fichier YAML | 02 |
 | **Réconciliation** | La boucle permanente par laquelle Kubernetes compare l'état souhaité à la réalité, et corrige l'écart. **L'idée centrale de Kubernetes** | 02 |
 | **YAML** | Le format texte des fichiers Kubernetes : des lignes `clé: valeur`, organisées par indentation | 02 |
 | **Label** (étiquette) | Un « post-it » collé sur un objet (`app: vote`), qui permet aux autres objets de le retrouver | 02, 04 |
 | **Requests** (réservations) | La part de processeur et de mémoire réservée pour un conteneur. Base du dimensionnement et des coûts | 03 |
-| **Limits** (plafonds) | Le maximum qu'un conteneur peut consommer. Au-delà de sa limite de mémoire, il est arrêté (`OOMKilled`) | 06 |
+| **Limits** (plafonds) | Le maximum qu'un conteneur peut consommer. Au-delà de sa limite de mémoire, il est arrêté (`OOMKilled`) | 07 |
 
 ## Rendre une application joignable
 
@@ -50,25 +50,37 @@ Les mots de la formation, expliqués simplement, avec le TP où vous les avez re
 | **Contrôleur d'Ingress** | Le programme qui reçoit réellement les visites et applique les règles d'Ingress (Traefik, NGINX…) | 04 |
 | **Gateway API** | Le successeur de l'Ingress, plus riche, adopté par les nouveaux projets | 04 |
 
+## Isoler et encadrer
+
+| Mot | En une phrase | TP |
+|---|---|---|
+| **ResourceQuota** (quota) | Un plafond pour tout un namespace : nombre de pods, processeur, mémoire… | 05 |
+| **LimitRange** | Des valeurs par défaut et des maximums pour chaque pod d'un namespace | 05 |
+| **NetworkPolicy** | Une règle réseau : quels pods peuvent en contacter d'autres, et sur quel port. Bonne pratique : tout fermer, puis n'ouvrir que le nécessaire | 05 |
+| **CNI** (Calico, Cilium…) | Le composant réseau du cluster ; c'est lui qui applique (ou non) les NetworkPolicies | 05 |
+| **RBAC** | Les droits d'accès : qui a le droit de faire quoi, dans quel namespace | 05 |
+| **Pod Security** | Le niveau de sécurité exigé des pods d'un namespace (interdire les conteneurs administrateurs…) | 05 |
+| **Kyverno**, **OPA Gatekeeper** | Des moteurs de politiques, qui vérifient automatiquement que tout ce qui entre dans le cluster respecte les règles de l'entreprise | 05 |
+
 ## Configuration
 
 | Mot | En une phrase | TP |
 |---|---|---|
-| **Variable d'environnement** | Un réglage donné à une application au démarrage (`OPTION_A=Montagne`) | 01, 05 |
-| **ConfigMap** | Un objet qui range des réglages à part de l'image, pour réutiliser la même image partout | 05 |
-| **Secret** | Un objet qui range des informations sensibles (mots de passe…). **Encodé, pas chiffré par défaut** : sa protection vient des droits d'accès. Le « coffre », à condition de bien le fermer | 05 |
+| **Variable d'environnement** | Un réglage donné à une application au démarrage (`OPTION_A=Montagne`) | 01, 06 |
+| **ConfigMap** | Un objet qui range des réglages à part de l'image, pour réutiliser la même image partout | 06 |
+| **Secret** | Un objet qui range des informations sensibles (mots de passe…). **Encodé, pas chiffré par défaut** : sa protection vient des droits d'accès. Le « coffre », à condition de bien le fermer | 06 |
 
 ## Mettre à jour et réparer
 
 | Mot | En une phrase | TP |
 |---|---|---|
-| **Mise à jour progressive** (*rolling update*) | Le remplacement des pods un par un, sans coupure de service | 06 |
-| **Rollback** (`rollout undo`) | Le retour à la version précédente, en quelques secondes | 06 |
-| **Révision** | Une version du modèle de pod, gardée dans l'historique du Deployment | 06 |
-| **Sonde de readiness** | « Es-tu prêt à recevoir des visiteurs ? » Sans réponse, le pod ne reçoit pas de trafic | 06 |
-| **Sonde de liveness** | « Es-tu encore en vie ? » Sans réponse, le conteneur est redémarré | 06 |
-| **Logs** | Le journal d'une application. Premier réflexe en cas d'incident | 01, 06 |
-| **Post-mortem** | Le compte rendu d'un incident : symptôme, cause, réparation, prévention | 07 |
+| **Mise à jour progressive** (*rolling update*) | Le remplacement des pods un par un, sans coupure de service | 07 |
+| **Rollback** (`rollout undo`) | Le retour à la version précédente, en quelques secondes | 07 |
+| **Révision** | Une version du modèle de pod, gardée dans l'historique du Deployment | 07 |
+| **Sonde de readiness** | « Es-tu prêt à recevoir des visiteurs ? » Sans réponse, le pod ne reçoit pas de trafic | 07 |
+| **Sonde de liveness** | « Es-tu encore en vie ? » Sans réponse, le conteneur est redémarré | 07 |
+| **Logs** | Le journal d'une application. Premier réflexe en cas d'incident | 01, 07 |
+| **Post-mortem** | Le compte rendu d'un incident : symptôme, cause, réparation, prévention | 08 |
 
 ## Les statuts à reconnaître
 

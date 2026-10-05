@@ -75,8 +75,13 @@ Fermez puis rouvrez votre terminal pour que les nouvelles commandes soient recon
 ### Étape 3 — Démarrer le cluster
 
 ```bash
-minikube start --driver=docker
+minikube start --driver=docker --cni=calico
 ```
+
+| Option | Rôle |
+|---|---|
+| `--driver=docker` | faire tourner le cluster dans Docker Desktop |
+| `--cni=calico` | utiliser le réseau Calico, qui sait appliquer les règles réseau que vous découvrirez au TP05 |
 
 Le premier démarrage télécharge Kubernetes et prend quelques minutes. Il se termine par la ligne suivante :
 

@@ -1,20 +1,22 @@
-# Solution du TP07
+# Solution du TP08
 
 > À n'ouvrir qu'en dernier recours 😉. Les commandes supposent que vous êtes dans le dossier `tp02`.
 
 ## La mise en production
 
 ```bash
+kubectl delete namespace vote-app
+kubectl config set-context --current --namespace=default
 kubectl create namespace prod
 kubectl apply -n prod -f db.secret.yml -f vote.config.yml
 kubectl apply -n prod -f https://raw.githubusercontent.com/bngams/kube-overview-labs/main/labs/04-services/assets/redis.yml
-kubectl apply -n prod -f https://raw.githubusercontent.com/bngams/kube-overview-labs/main/labs/05-configuration/assets/db.yml
+kubectl apply -n prod -f https://raw.githubusercontent.com/bngams/kube-overview-labs/main/labs/06-configuration/assets/db.yml
 kubectl apply -n prod -f https://raw.githubusercontent.com/bngams/kube-overview-labs/main/labs/04-services/assets/worker.yml
 kubectl apply -n prod -f https://raw.githubusercontent.com/bngams/kube-overview-labs/main/labs/04-services/assets/result.yml
 kubectl apply -n prod -f vote.deploy.yml -f vote.svc.yml -f vote.ingress.yml
 ```
 
-Les fichiers attendus dans `tp02` sont ceux des solutions précédentes : [`vote.deploy.yml`](../../06-mises-a-jour/solution/vote.deploy.yml) et [`vote.config.yml`](../../06-mises-a-jour/solution/vote.config.yml) du TP06, [`db.secret.yml`](../../05-configuration/solution/db.secret.yml) du TP05, [`vote.svc.yml`](../../04-services/solution/vote.svc.yml) et [`vote.ingress.yml`](../../04-services/solution/vote.ingress.yml) du TP04.
+Les fichiers attendus dans `tp02` sont ceux des solutions précédentes : [`vote.deploy.yml`](../../07-mises-a-jour/solution/vote.deploy.yml) et [`vote.config.yml`](../../07-mises-a-jour/solution/vote.config.yml) du TP07, [`db.secret.yml`](../../06-configuration/solution/db.secret.yml) du TP06, [`vote.svc.yml`](../../04-services/solution/vote.svc.yml) et [`vote.ingress.yml`](../../04-services/solution/vote.ingress.yml) du TP04.
 
 ## Les pannes
 

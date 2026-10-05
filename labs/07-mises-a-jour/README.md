@@ -1,8 +1,8 @@
-# 06 — Mettre à jour et réparer
+# 07 — Mettre à jour et réparer
 
 > **Scénario à réaliser en binôme.** L'équipe de développement livre deux nouvelles versions de `vote` : une **v2** avec un nouveau design, puis une **v3**… qui exige un réglage que personne n'a pensé à livrer. Vous allez déployer la v2 **sans coupure**, voir la v3 planter, **diagnostiquer** la panne comme le ferait une équipe d'exploitation, **revenir en arrière** en une commande, puis protéger l'application avec des **sondes de santé** pour que la prochaine erreur ne touche plus les utilisateurs. Les blocs marqués `# TODO` sont à compléter vous-mêmes. Le dossier [`solution/`](solution/) contient la réponse, à n'ouvrir qu'en cas de blocage 😉.
 >
-> 🎯 **Niveau :** débutant. On suppose le [TP05](../05-configuration/README.md) terminé : l'application complète tourne, `vote` lit ses réglages dans la ConfigMap `vote-config`.
+> 🎯 **Niveau :** débutant. On suppose le [TP06](../06-configuration/README.md) terminé : l'application complète tourne, `vote` lit ses réglages dans la ConfigMap `vote-config`.
 >
 > 🧑‍✈️ **En binôme :** le **pilote** tape les commandes, le **copilote** lit la consigne à voix haute et explique ce qu'on observe. **Échangez les rôles à la section 4.**
 
@@ -15,7 +15,7 @@
 
 ## 📁 Point de départ
 
-On continue dans le dossier `tp02`, ouvert dans VS Code. Si le tunnel des résultats du TP05 tourne encore dans le terminal 3, arrêtez-le (Ctrl+C) : ce terminal va servir à la surveillance. Voici le rôle de chaque terminal :
+On continue dans le dossier `tp02`, ouvert dans VS Code. Si le tunnel des résultats du TP06 tourne encore dans le terminal 3, arrêtez-le (Ctrl+C) : ce terminal va servir à la surveillance. Voici le rôle de chaque terminal :
 
 | Terminal | Rôle | 🅰️ Local | 🅱️ Cloud |
 |---|---|---|---|
@@ -97,7 +97,7 @@ REVISION  CHANGE-CAUSE
 5         <none>
 ```
 
-Chaque ligne est une **révision**, c'est-à-dire une version du modèle de pod : celles du TP03 (réservations), du TP05 (ConfigMap, puis `rollout restart`) et la v2 que vous venez de déployer. Votre liste peut être plus ou moins longue selon votre parcours ; la dernière ligne est toujours la version en cours. La colonne `CHANGE-CAUSE` est vide : en entreprise, on l'alimente avec une annotation pour savoir **pourquoi** chaque version a été déployée.
+Chaque ligne est une **révision**, c'est-à-dire une version du modèle de pod : celles du TP03 (réservations), du TP06 (ConfigMap, puis `rollout restart`) et la v2 que vous venez de déployer. Votre liste peut être plus ou moins longue selon votre parcours ; la dernière ligne est toujours la version en cours. La colonne `CHANGE-CAUSE` est vide : en entreprise, on l'alimente avec une annotation pour savoir **pourquoi** chaque version a été déployée.
 
 ## 💥 3 — La v3 plante
 
@@ -270,7 +270,7 @@ Pour éviter cela, on donne à Kubernetes un moyen de vérifier lui-même la san
               memory: 64Mi
 ```
 
-Comme pour `envFrom` au TP05 : placez le curseur au tout début de la ligne `resources:` (colonne 1), appuyez **dix fois** sur Entrée pour créer dix lignes vides au-dessus, puis tapez les dix lignes du bloc en respectant les espaces. Les commentaires `# <-` et `# toutes les…` sont facultatifs.
+Comme pour `envFrom` au TP06 : placez le curseur au tout début de la ligne `resources:` (colonne 1), appuyez **dix fois** sur Entrée pour créer dix lignes vides au-dessus, puis tapez les dix lignes du bloc en respectant les espaces. Les commentaires `# <-` et `# toutes les…` sont facultatifs.
 
 Appliquez, puis vérifiez que les sondes sont en place :
 
@@ -322,13 +322,13 @@ kubectl rollout undo deployment vote
 
 ## 🔧 6 — Corriger la v3 pour de bon
 
-Le service est rétabli, il reste à livrer la v3 **correctement**. Le diagnostic l'a montré : la v3 a besoin d'un réglage `VOTE_TITLE`. Vous savez où ranger un réglage depuis le TP05 : dans la ConfigMap.
+Le service est rétabli, il reste à livrer la v3 **correctement**. Le diagnostic l'a montré : la v3 a besoin d'un réglage `VOTE_TITLE`. Vous savez où ranger un réglage depuis le TP06 : dans la ConfigMap.
 
 🚧 **À compléter :** dans `vote.config.yml`, gardez vos deux options telles quelles et ajoutez une ligne `VOTE_TITLE` en dessous (au même niveau qu'elles), avec le titre de votre choix entre guillemets, puis enregistrez.
 
 ```yaml
 data:
-  OPTION_A: …          # vos options du TP05, inchangées
+  OPTION_A: …          # vos options du TP06, inchangées
   OPTION_B: …
   VOTE_TITLE: # TODO : un titre entre guillemets, par exemple "Votre destination de vacances ?"
 ```
@@ -399,11 +399,11 @@ Voici les statuts rencontrés pendant la formation, à garder sous la main :
 | Statut | Ce qui se passe | Où chercher | Vu au |
 |---|---|---|---|
 | `Pending` | le pod attend une place sur un nœud | `kubectl describe pod` (événements) | TP03 |
-| `CreateContainerConfigError` | une ConfigMap ou un Secret attendu est introuvable | `kubectl describe pod` | TP05 |
-| `ImagePullBackOff` / `ErrImagePull` | l'image ne peut pas être téléchargée (nom, version, droits d'accès) | `kubectl describe pod` | TP06 |
-| `CrashLoopBackOff` | l'application plante au démarrage, en boucle | `kubectl logs` (et `--previous`) | TP06 |
-| `OOMKilled` | l'application a dépassé sa limite de mémoire (souvent visible dans `Last State` plutôt que dans `STATUS`) | `kubectl describe pod` (`Last State`) | TP06 |
-| `Running` mais `0/1` | l'application tourne, mais sa sonde de *readiness* échoue | `kubectl describe pod` (événements `Unhealthy`) | TP06, « Pour aller plus loin » |
+| `CreateContainerConfigError` | une ConfigMap ou un Secret attendu est introuvable | `kubectl describe pod` | TP06 |
+| `ImagePullBackOff` / `ErrImagePull` | l'image ne peut pas être téléchargée (nom, version, droits d'accès) | `kubectl describe pod` | TP07 |
+| `CrashLoopBackOff` | l'application plante au démarrage, en boucle | `kubectl logs` (et `--previous`) | TP07 |
+| `OOMKilled` | l'application a dépassé sa limite de mémoire (souvent visible dans `Last State` plutôt que dans `STATUS`) | `kubectl describe pod` (`Last State`) | TP07 |
+| `Running` mais `0/1` | l'application tourne, mais sa sonde de *readiness* échoue | `kubectl describe pod` (événements `Unhealthy`) | TP07, « Pour aller plus loin » |
 
 > 📖 [Mettre à jour un Deployment](https://kubernetes.io/fr/docs/concepts/workloads/controllers/deployment/#mise-%C3%A0-jour-d-un-d%C3%A9ploiement) · [Sondes de santé](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) · [Déboguer un pod](https://kubernetes.io/docs/tasks/debug/debug-application/debug-pods/)
 
@@ -433,7 +433,7 @@ Ces pistes sont facultatives.
 - [ ] Nous avons provoqué et identifié un `ImagePullBackOff` et un `OOMKilled`.
 - [ ] À la fin, `vote.deploy.yml` (version `3.0`, avec les sondes) correspond exactement à ce qui tourne.
 
-Arrêtez la surveillance (Ctrl+C dans le terminal 3). Laissez l'application en place pour le TP07.
+Arrêtez la surveillance (Ctrl+C dans le terminal 3). Laissez l'application en place pour le TP08.
 
 ## Récap
 
@@ -443,4 +443,4 @@ Arrêtez la surveillance (Ctrl+C dans le terminal 3). Laissez l'application en p
 - Les **sondes** (*readiness*, *liveness*) disent à Kubernetes si l'application va vraiment bien. Sans elles, une version cassée peut remplacer des pods sains.
 - `CrashLoopBackOff`, `ImagePullBackOff`, `OOMKilled` : vous savez maintenant ce que ces mots veulent dire, et où chercher.
 
-➡️ Suite : [07 — Mission finale](../07-mission-finale/README.md)
+➡️ Suite : [08 — Mission finale](../08-mission-finale/README.md)

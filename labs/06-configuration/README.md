@@ -1,8 +1,8 @@
-# 05 — Configuration, secrets et namespaces
+# 06 — Configuration et secrets
 
-> **Scénario à réaliser en binôme.** Votre application tourne, mais ses réglages sont gravés dans l'image ou écrits en clair dans les fichiers. Vous allez changer la question du vote **sans reconstruire l'image** (ConfigMap), sortir le mot de passe de la base dans un **Secret** (et découvrir ce qu'un Secret protège vraiment), puis créer un environnement de recette à côté de votre application, dans un **namespace**. Les blocs marqués `# TODO` sont à compléter vous-mêmes. Le dossier [`solution/`](solution/) contient la réponse, à n'ouvrir qu'en cas de blocage 😉.
+> **Scénario à réaliser en binôme.** Votre application tourne, mais ses réglages sont gravés dans l'image ou écrits en clair dans les fichiers. Vous allez changer la question du vote **sans reconstruire l'image** (ConfigMap), sortir le mot de passe de la base dans un **Secret** (et découvrir ce qu'un Secret protège vraiment). Les blocs marqués `# TODO` sont à compléter vous-mêmes. Le dossier [`solution/`](solution/) contient la réponse, à n'ouvrir qu'en cas de blocage 😉.
 >
-> 🎯 **Niveau :** débutant. On suppose le [TP04](../04-services/README.md) terminé : les 5 morceaux de l'application tournent, et vous savez ouvrir la page de vote par la porte d'entrée (port 8000).
+> 🎯 **Niveau :** débutant. On suppose le [TP05](../05-isolation/README.md) terminé : les 5 morceaux de l'application tournent dans le namespace `vote-app` (votre namespace par défaut), et vous savez ouvrir la page de vote par la porte d'entrée (port 8000).
 >
 > 🧑‍✈️ **En binôme :** le **pilote** tape les commandes, le **copilote** lit la consigne à voix haute et explique ce qu'on observe. **Échangez les rôles à la section 3.**
 
@@ -11,7 +11,6 @@
 - Séparer la **configuration** de l'application grâce à une **ConfigMap**.
 - Comprendre pourquoi changer une configuration impose de **redémarrer** les pods.
 - Ranger un mot de passe dans un **Secret**, et savoir ce qu'il protège… ou pas.
-- Utiliser les **namespaces** pour séparer des environnements, et voir ce qui les isole.
 
 ## 📁 Point de départ
 
@@ -240,7 +239,7 @@ Une nouvelle version de `db.yml` vous est fournie : elle remplace les deux varia
 C'est le même principe que `configMapRef` à la section 1, appliqué à un Secret. Appliquez cette nouvelle version :
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/bngams/kube-overview-labs/main/labs/05-configuration/assets/db.yml
+kubectl apply -f https://raw.githubusercontent.com/bngams/kube-overview-labs/main/labs/06-configuration/assets/db.yml
 ```
 
 ```
@@ -322,152 +321,11 @@ Parmi les lignes affichées : `POSTGRES_PASSWORD=postgres`.
 >
 > 📖 [ConfigMaps](https://kubernetes.io/fr/docs/concepts/configuration/configmap/) · [Secrets](https://kubernetes.io/fr/docs/concepts/configuration/secret/)
 
-## 🗂️ 4 — Les namespaces : des espaces séparés
-
-Jusqu'ici, tout ce que vous avez créé se trouve dans le namespace `default`, mentionné dans de nombreuses réponses depuis le TP02. Un **namespace** est un espace de rangement à l'intérieur du cluster : des objets de même nom peuvent exister dans deux namespaces différents sans se gêner. Listez ceux de votre cluster :
-
-```bash
-kubectl get namespaces
-```
-
-```
-NAME              STATUS   AGE
-default           Active   3h
-ingress-nginx     Active   1h      <- en mode local seulement : le contrôleur d'Ingress du TP04
-kube-node-lease   Active   3h
-kube-public       Active   3h
-kube-system       Active   3h
-```
-
-`kube-system` contient les composants de Kubernetes lui-même. Jetez-y un œil, avec l'option `-n` (*namespace*) :
-
-```bash
-kubectl get pods -n kube-system
-```
-
-La liste dépend du mode. En mode local, minikube affiche les composants classiques de Kubernetes :
-
-```
-NAME                               READY   STATUS    RESTARTS   AGE
-coredns-66bc5c9577-trghb           1/1     Running   0          3h
-etcd-minikube                      1/1     Running   0          3h
-kube-apiserver-minikube            1/1     Running   0          3h
-kube-controller-manager-minikube   1/1     Running   0          3h
-kube-proxy-zpfq7                   1/1     Running   0          3h
-kube-scheduler-minikube            1/1     Running   0          3h
-storage-provisioner                1/1     Running   0          3h
-```
-
-| Composant | Rôle |
-|---|---|
-| `kube-apiserver` | reçoit toutes vos commandes `kubectl` |
-| `etcd` | la base de données où Kubernetes range **tout l'état du cluster**, dont vos états souhaités |
-| `kube-scheduler` | l'ordonnanceur du TP03, qui place les pods sur les nœuds |
-| `kube-controller-manager` | les boucles de réconciliation : c'est lui qui recrée vos pods |
-| `kube-proxy` | aiguille le trafic des Services vers les pods |
-| `coredns` | l'annuaire DNS qui traduit les noms de Services (TP04) |
-
-En mode cloud, k3s regroupe la plupart de ces composants dans un seul programme, invisible ici. Vous verrez plutôt `coredns`, `traefik` (le contrôleur d'Ingress), `metrics-server`, `local-path-provisioner`, ainsi que quelques pods `helm-install-traefik-…` à l'état `Completed` : ce sont des tâches d'installation terminées. **Dans les deux modes, n'y touchez jamais.**
-
-### Étape 1 — Créer un environnement de recette
-
-Imaginons que l'équipe veuille un environnement de **recette** (de validation), à côté de l'application actuelle. Créez un namespace pour lui :
-
-```bash
-kubectl create namespace recette
-```
-
-```
-namespace/recette created
-```
-
-Déployez-y `vote` et son Service, **avec les mêmes fichiers** : l'option `-n recette` suffit à les envoyer dans le nouveau namespace.
-
-```bash
-kubectl apply -f vote.deploy.yml -n recette
-kubectl apply -f vote.svc.yml -n recette
-kubectl get pods -n recette
-```
-
-```
-deployment.apps/vote created
-service/vote created
-NAME                   READY   STATUS                       RESTARTS   AGE
-vote-fb9787cdf-gp955   0/1     CreateContainerConfigError   0          8s
-vote-fb9787cdf-pz4rc   0/1     CreateContainerConfigError   0          8s
-vote-fb9787cdf-sc5hs   0/1     CreateContainerConfigError   0          8s
-```
-
-Le Deployment `vote` de recette a été créé sans conflit avec celui de `default`, mais ses pods ne démarrent pas. Vous connaissez ce symptôme (section 1) : la ConfigMap `vote-config` est introuvable. Elle existe pourtant… mais dans `default`.
-
-> 🧠 **Les objets d'un namespace ne sont visibles que dans ce namespace.** Un Deployment de `recette` ne voit que les ConfigMaps et les Secrets de `recette`. C'est voulu : chaque environnement a **ses propres réglages**, sans risque de mélanger la recette et la production.
-
-🚧 **À compléter :** appliquez votre ConfigMap dans le namespace `recette`, avec la même option que ci-dessus, puis vérifiez que les pods démarrent.
-
-```bash
-kubectl apply -f vote.config.yml # TODO : ajoutez l'option qui désigne le namespace recette
-kubectl get pods -n recette
-```
-
-Une dizaine de secondes après la création de la ConfigMap, les pods de recette démarrent tout seuls :
-
-```
-NAME                   READY   STATUS    RESTARTS   AGE
-vote-fb9787cdf-gp955   1/1     Running   0          19s
-vote-fb9787cdf-pz4rc   1/1     Running   0          19s
-vote-fb9787cdf-sc5hs   1/1     Running   0          19s
-```
-
-### Étape 2 — Qui voit qui ?
-
-Les namespaces séparent aussi les **noms de Services**. Lancez un pod de test **dans** `recette`, qui essaie de joindre trois adresses :
-
-```bash
-kubectl run test -n recette --rm -i --restart=Never --image=ghcr.io/bngams/kube-busybox:1.37 -- sh -c "wget -qO- -T 3 http://redis:6379; wget -qO- http://vote/healthz; echo; wget -qO- http://vote.default/healthz; echo"
-```
-
-C'est le même pod de test qu'au TP04, avec `-n recette` pour le lancer dans le namespace de recette. Il enchaîne trois appels, séparés par des `;` (l'option `-T 3` limite l'attente du premier à 3 secondes). Sous PowerShell, collez bien la commande sur une seule ligne. Le terminal affiche :
-
-```
-wget: bad address 'redis:6379'
-{"hostname":"vote-fb9787cdf-pz4rc","status":"ok","version":"1.0"}
-{"hostname":"vote-7b65bd444c-dpf7v","status":"ok","version":"1.0"}
-pod "test" deleted from recette namespace
-```
-
-| Adresse appelée | Résultat | Pourquoi |
-|---|---|---|
-| `http://redis:6379` | `bad address` | il n'y a pas de Service `redis` dans `recette`. Le `vote` de recette ne pourrait donc pas enregistrer de vote : chaque environnement a besoin de **ses propres** dépendances |
-| `http://vote` | un pod `vote-fb9787cdf-…` | le nom court désigne le Service `vote` **du même namespace**, celui de recette |
-| `http://vote.default` | un pod `vote-7b65bd444c-…` | en ajoutant le nom du namespace, on atteint le `vote` de `default` |
-
-Le namespace sépare donc les **noms** et les **réglages**, mais il ne bloque pas les communications : en le nommant, on peut joindre un autre namespace. Pour interdire réellement ces échanges, il faut des règles réseau dédiées (des *NetworkPolicies*), que le réseau du cluster doit savoir appliquer (c'est le cas avec k3s, pas avec la configuration par défaut de minikube).
-
-### Étape 3 — Supprimer un environnement d'un coup
-
-L'environnement de recette n'est plus utile. Supprimer un namespace supprime **tout ce qu'il contient** :
-
-```bash
-kubectl delete namespace recette
-```
-
-```
-namespace "recette" deleted
-```
-
-La commande peut prendre une vingtaine de secondes. Vérifiez avec `kubectl get namespaces` : `recette` a disparu, avec son Deployment, ses pods, son Service et sa ConfigMap. Votre application, dans `default`, n'a pas bougé.
-
-> 🗣️ **En réunion projet.** Les namespaces servent à séparer des **environnements** (dev, recette…), des **équipes** ou des **projets** sur un même cluster. On y attache des **droits** (« l'équipe A ne gère que son namespace ») et des **quotas** (« ce namespace ne peut pas réserver plus de 4 processeurs »), utiles pour répartir les coûts. Beaucoup d'entreprises gardent en revanche la **production** sur un cluster séparé, pour une isolation plus forte.
->
-> 📖 [Namespaces](https://kubernetes.io/fr/docs/concepts/overview/working-with-objects/namespaces/)
-
 ## 🔵 Pour aller plus loin
 
 Ces pistes sont facultatives.
 
-- **Changer de namespace par défaut :** créez un namespace `essai`, puis `kubectl config set-context --current --namespace=essai` vous évite de taper `-n essai` à chaque commande. Revenez ensuite avec `--namespace=default`, sinon vos commandes suivantes viseront le mauvais namespace, et supprimez `essai`.
-- **Tout voir d'un coup :** `kubectl get pods -A` (pour *all namespaces*) liste les pods de tous les namespaces.
-- **Un quota :** créez un namespace `quota`, puis un quota qui limite ses réservations de processeur : `kubectl create quota cpu -n quota --hard=requests.cpu=200m`. Appliquez-y `vote.config.yml` puis `vote.deploy.yml` (3 réplicas à `100m`) : seuls 2 pods sont créés. `kubectl describe replicaset -n quota` explique pourquoi, avec un événement `FailedCreate` qui mentionne `exceeded quota`. Supprimez ensuite le namespace.
+- **Une configuration par environnement :** une ConfigMap n'est visible que dans son namespace. En créant un namespace `recette` avec sa propre `vote-config`, la même image et le même `vote.deploy.yml` y afficheraient d'autres options : c'est ainsi qu'on sépare recette et production.
 - **Un réglage sous forme de fichier :** une ConfigMap peut aussi contenir un fichier entier (une configuration NGINX, par exemple), monté dans le conteneur comme un vrai fichier. C'est l'autre façon courante de l'utiliser, et elle a un avantage : quand la ConfigMap change, le fichier est mis à jour dans les pods au bout d'une minute environ, sans redémarrage (à condition que l'application relise son fichier).
 
 ## 🎉 Challenge final
@@ -476,14 +334,11 @@ Ces pistes sont facultatives.
 - [ ] Nous avons constaté qu'une ConfigMap modifiée n'est prise en compte qu'après `kubectl rollout restart`.
 - [ ] La base lit ses identifiants dans le Secret `db-credentials`, et le vote fonctionne toujours.
 - [ ] Nous avons décodé le mot de passe du Secret, et nous savons expliquer pourquoi ce n'est pas un coffre-fort.
-- [ ] Dans le namespace `recette`, `vote` ne démarrait qu'une fois sa propre ConfigMap créée.
-- [ ] Le namespace `recette` est supprimé, et l'application de `default` tourne toujours.
 
 ## Récap
 
 - Une **ConfigMap** sépare les réglages de l'image : une seule image, des réglages par environnement.
 - Les variables d'environnement sont lues **au démarrage** : après un changement de ConfigMap, il faut `kubectl rollout restart`.
 - Un **Secret** range les informations sensibles. Il est **encodé, pas chiffré par défaut** : sa protection vient des droits d'accès, et il ne va jamais en clair dans Git.
-- Un **namespace** sépare les noms, les réglages, les droits et les quotas. Le supprimer supprime tout ce qu'il contient.
 
-➡️ Suite : [06 — Mettre à jour et réparer](../06-mises-a-jour/README.md)
+➡️ Suite : [07 — Mettre à jour et réparer](../07-mises-a-jour/README.md)

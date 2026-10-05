@@ -13,10 +13,11 @@ Fil rouge : Kubernetes compare en permanence **ce qu'on lui demande** (l'état s
 | [02 — Premier Deployment](labs/02-premier-deployment/README.md) | l'état souhaité : Kubernetes répare tout seul | J1 |
 | [03 — Passer à l'échelle](labs/03-scaling/README.md) | réplicas, « le fichier fait foi », 0 réplica, réservations et pods `Pending` | J1 |
 | [04 — Services et Ingress](labs/04-services/README.md) | adresse stable, application complète, vote de bout en bout, porte d'entrée | J2 |
-| [05 — Configuration, secrets et namespaces](labs/05-configuration/README.md) | ConfigMap, Secret (et ses limites), environnements séparés | J2 |
-| [06 — Mettre à jour et réparer](labs/06-mises-a-jour/README.md) | mise à jour sans coupure, pannes, retour arrière, sondes de santé | J2 |
-| [07 — Mission finale](labs/07-mission-finale/README.md) | mise en production en autonomie, puis chasse aux pannes | J2 |
-| [08 — Étude de cas](labs/08-etude-de-cas/README.md) | Kubernetes dans votre projet : quand, comment, combien, qui | J2 |
+| [05 — Isoler et encadrer](labs/05-isolation/README.md) | namespaces, quotas, règles réseau (NetworkPolicies), ouverture sur Kyverno | J2 |
+| [06 — Configuration et secrets](labs/06-configuration/README.md) | ConfigMap, Secret et ses limites | J2 |
+| [07 — Mettre à jour et réparer](labs/07-mises-a-jour/README.md) | mise à jour sans coupure, pannes, retour arrière, sondes de santé | J2 |
+| [08 — Mission finale](labs/08-mission-finale/README.md) | mise en production en autonomie, puis chasse aux pannes | J2 |
+| [09 — Étude de cas](labs/09-etude-de-cas/README.md) | Kubernetes dans votre projet : quand, comment, combien, qui | J2 |
 
 ## Supports
 

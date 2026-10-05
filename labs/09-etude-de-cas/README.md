@@ -1,4 +1,4 @@
-# 08 — Étude de cas : Kubernetes dans votre projet
+# 09 — Étude de cas : Kubernetes dans votre projet
 
 > **Atelier en binôme ou en petit groupe, sans ordinateur.** Vous savez maintenant ce que fait Kubernetes et ce qu'on voit dans un projet qui l'utilise. Reste la question que se pose tout chef de projet : **faut-il du Kubernetes pour *mon* projet ?** Et si oui, que faut-il prévoir, qui fait quoi, combien ça coûte ? Cet atelier vous donne une grille de lecture, puis vous l'appliquez à quatre projets fictifs.
 >
@@ -23,9 +23,9 @@ Vous l'avez vu pendant deux jours :
 |---|---|---|
 | L'application doit rester disponible malgré les pannes | réparation automatique, plusieurs réplicas, répartition sur plusieurs serveurs | TP02, TP03 |
 | La charge varie (pics, saisonnalité) | passage à l'échelle, manuel ou automatique | TP03 |
-| On livre souvent, sans coupure | mises à jour progressives, retour arrière en quelques secondes | TP06 |
+| On livre souvent, sans coupure | mises à jour progressives, retour arrière en quelques secondes | TP07 |
 | L'application a plusieurs morceaux, dans plusieurs technologies | chaque morceau dans son conteneur, reliés par des Services | TP04 |
-| Plusieurs environnements (dev, recette, prod), plusieurs équipes | namespaces, configuration séparée de l'image | TP05 |
+| Plusieurs environnements (dev, recette, prod), plusieurs équipes | namespaces, configuration séparée de l'image | TP05, TP06 |
 | On veut éviter de dépendre d'un fournisseur | les mêmes fichiers YAML fonctionnent chez AWS, Google, Azure, OVH ou dans son propre datacenter | tout le cours |
 
 ### Ce que Kubernetes coûte
@@ -33,7 +33,7 @@ Vous l'avez vu pendant deux jours :
 | Coût | En pratique |
 |---|---|
 | **Compétences** | Il faut des personnes formées pour l'exploiter : c'est souvent le coût principal. Une équipe sans compétence Kubernetes ne doit pas s'y lancer seule pour un projet critique |
-| **Complexité** | Plus d'objets, plus de concepts, plus d'outils autour (supervision, sécurité, CI/CD). Une erreur de configuration peut tout bloquer (vous l'avez vu au TP07) |
+| **Complexité** | Plus d'objets, plus de concepts, plus d'outils autour (supervision, sécurité, CI/CD). Une erreur de configuration peut tout bloquer (vous l'avez vu au TP08) |
 | **Infrastructure** | Un cluster tourne en permanence, avec plusieurs nœuds pour la haute disponibilité, même quand l'application est peu utilisée |
 | **Outillage** | Supervision, centralisation des logs, sauvegardes, sécurité des images… à prévoir et à financer |
 
@@ -61,11 +61,11 @@ Dans un projet sur Kubernetes, les responsabilités se répartissent souvent ain
 
 | Rôle | Responsabilités | Ce que vous avez fait dans ce rôle |
 |---|---|---|
-| **Développeurs** | le code, le Dockerfile, les sondes de santé, la configuration attendue | TP01 (image), TP06 (sondes, `VOTE_TITLE`) |
-| **DevOps / équipe applicative** | les fichiers YAML de l'application, la chaîne de livraison (CI/CD), les mises à jour | TP02 à TP06 |
+| **Développeurs** | le code, le Dockerfile, les sondes de santé, la configuration attendue | TP01 (image), TP07 (sondes, `VOTE_TITLE`) |
+| **DevOps / équipe applicative** | les fichiers YAML de l'application, la chaîne de livraison (CI/CD), les mises à jour | TP02 à TP07 |
 | **Équipe plateforme / Ops / SRE** | le cluster lui-même, les nœuds, l'Ingress, la supervision, la sécurité, les sauvegardes | TP00 (en version miniature) |
-| **Chef de projet / PO** | les exigences (disponibilité, performance, budget), le planning des mises en production, la communication en cas d'incident | TP07 (cahier des charges, fiche d'incident) |
-| **Sécurité / RSSI** | les droits d'accès, les Secrets, la sécurité des images, la conformité | TP05 (Secrets) |
+| **Chef de projet / PO** | les exigences (disponibilité, performance, budget), le planning des mises en production, la communication en cas d'incident | TP08 (cahier des charges, fiche d'incident) |
+| **Sécurité / RSSI** | les droits d'accès, les Secrets, la sécurité des images, la conformité | TP06 (Secrets) |
 
 > 🗣️ La question « *qui est d'astreinte si le cluster tombe à 3 h du matin ?* » doit avoir une réponse **avant** la mise en production.
 
@@ -121,22 +121,22 @@ Voici une liste de questions à garder pour vos propres projets. Vous en compren
 
 **Disponibilité et incidents**
 - Combien de réplicas pour chaque application ? Sur combien de nœuds, dans combien de zones ?
-- Nos applications ont-elles des **sondes de santé** ? (TP06)
-- Comment revient-on en arrière si une mise en production se passe mal ? En combien de temps ? (TP06)
+- Nos applications ont-elles des **sondes de santé** ? (TP07)
+- Comment revient-on en arrière si une mise en production se passe mal ? En combien de temps ? (TP07)
 - Qui est d'astreinte ? Où voit-on les logs et les alertes ?
 
 **Données**
-- Où sont les données ? Sont-elles sur des **volumes persistants**, ou dans une base managée hors du cluster ? (TP04, TP05)
+- Où sont les données ? Sont-elles sur des **volumes persistants**, ou dans une base managée hors du cluster ? (TP04, TP06)
 - Comment sont faites les **sauvegardes** ? A-t-on déjà testé une restauration ?
 
 **Sécurité**
-- Où sont rangés les **Secrets** ? Qui peut les lire ? Sont-ils dans Git ? (TP05)
+- Où sont rangés les **Secrets** ? Qui peut les lire ? Sont-ils dans Git ? (TP06)
 - D'où viennent nos images ? Sont-elles analysées pour détecter les failles connues ?
 - Qui a accès au cluster, et avec quels droits ?
 
 **Livraison**
 - Comment une nouvelle version arrive-t-elle en production ? Les fichiers YAML sont-ils dans Git ? (TP03)
-- Les mêmes images sont-elles utilisées en recette et en production, avec seulement une configuration différente ? (TP05)
+- Les mêmes images sont-elles utilisées en recette et en production, avec seulement une configuration différente ? (TP06)
 
 **Coûts**
 - Combien coûte chaque environnement par mois ? Peut-on éteindre les environnements hors production la nuit ? (TP03)

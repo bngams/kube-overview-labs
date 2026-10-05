@@ -295,7 +295,7 @@ vote-644d47956b-x7pcf   1/1     Running   0          25s
 Deux choses se passent à la fois :
 
 - **Un nouveau pod reste bloqué en `Pending`** : Kubernetes ne trouve aucun nœud assez grand pour lui. Le pod ne disparaît pas : il attend qu'une place se libère, ou qu'on ajoute un nœud.
-- **Les trois anciens pods tournent toujours.** Modifier le modèle de pod revient à demander une **nouvelle version** de l'application. Kubernetes la déploie progressivement : avec ses réglages par défaut et 3 réplicas, il ne retire un ancien pod qu'une fois un nouveau prêt. Puisque le nouveau ne démarre pas, il garde les anciens : **l'application reste disponible**. Vous étudierez ce mécanisme, la *mise à jour progressive*, au TP06.
+- **Les trois anciens pods tournent toujours.** Modifier le modèle de pod revient à demander une **nouvelle version** de l'application. Kubernetes la déploie progressivement : avec ses réglages par défaut et 3 réplicas, il ne retire un ancien pod qu'une fois un nouveau prêt. Puisque le nouveau ne démarre pas, il garde les anciens : **l'application reste disponible**. Vous étudierez ce mécanisme, la *mise à jour progressive*, au TP07.
 
 Le Deployment résume la situation :
 
@@ -362,7 +362,7 @@ vote-644d47956b   0         0         0       45m
 vote-fc57495c     3         3         3       1m
 ```
 
-Chaque modification du modèle de pod a créé un **nouveau ReplicaSet** : `644d47956b` pour la version d'origine, `584fbb796` pour la version à 64 processeurs (jamais démarrée), `fc57495c` pour la version actuelle. Les anciens sont gardés à 0 : ils serviront à **revenir en arrière** au TP06. Remarquez qu'aux sections 1, 4 et 5, changer seulement le nombre de `replicas` n'avait **pas** créé de nouveau ReplicaSet : le modèle de pod n'avait pas changé, c'est le même ReplicaSet qui ajoutait ou retirait des pods.
+Chaque modification du modèle de pod a créé un **nouveau ReplicaSet** : `644d47956b` pour la version d'origine, `584fbb796` pour la version à 64 processeurs (jamais démarrée), `fc57495c` pour la version actuelle. Les anciens sont gardés à 0 : ils serviront à **revenir en arrière** au TP07. Remarquez qu'aux sections 1, 4 et 5, changer seulement le nombre de `replicas` n'avait **pas** créé de nouveau ReplicaSet : le modèle de pod n'avait pas changé, c'est le même ReplicaSet qui ajoutait ou retirait des pods.
 
 > 🗣️ **En réunion projet.** Les *requests* sont la base du **dimensionnement** et des **coûts** : la somme des réservations dit combien de nœuds il faut, donc combien de serveurs payer. Un pod `Pending` en production signifie souvent « le cluster est plein » : il faut alors ajouter des nœuds (beaucoup de clouds le font automatiquement), ou revoir les réservations à la baisse.
 >
@@ -374,7 +374,7 @@ Ces pistes sont facultatives.
 
 - **Les vraies consommations :** `kubectl top pods` affiche le processeur et la mémoire réellement utilisés par chaque pod, à comparer aux réservations. En mode cloud, cela fonctionne directement. En mode local, activez d'abord le module de mesure avec `minikube addons enable metrics-server`. Dans les deux cas, si la commande répond `metrics not available yet`, attendez une minute et relancez-la.
 - **Le passage à l'échelle automatique :** `kubectl autoscale deployment vote --cpu=50% --min=2 --max=6` crée un *HorizontalPodAutoscaler*, qui ajuste lui-même le nombre de réplicas selon la charge (il a besoin des *requests* de la section 7 pour calculer un pourcentage). En mode local, il a lui aussi besoin du module `metrics-server` (sinon la colonne `TARGETS` affiche `<unknown>`). Observez-le avec `kubectl get hpa`, puis supprimez-le avec `kubectl delete hpa vote` : sinon, il continuerait à décider du nombre de réplicas à la place de votre fichier. Comme l'application est peu sollicitée, il a pu réduire les réplicas à 2 : relancez `kubectl apply -f vote.deploy.yml` pour revenir à 3.
-- **Une limite en plus de la réservation :** à côté de `requests`, le champ `limits` fixe un **plafond** que le conteneur ne peut pas dépasser. Un conteneur qui dépasse sa limite de mémoire est arrêté (`OOMKilled`). Vous le croiserez au TP06.
+- **Une limite en plus de la réservation :** à côté de `requests`, le champ `limits` fixe un **plafond** que le conteneur ne peut pas dépasser. Un conteneur qui dépasse sa limite de mémoire est arrêté (`OOMKilled`). Vous le croiserez au TP07.
 - **Mode cloud uniquement :** lancez `k9s` et tapez `:deploy` puis Entrée pour voir vos Deployments, ou `:rs` pour les ReplicaSets.
 
 ## 🎉 Challenge final
@@ -395,6 +395,6 @@ Pour terminer, arrêtez la surveillance (Ctrl+C dans le terminal 2), puis fermez
 - **Le fichier fait foi** : un raccourci comme `kubectl scale` est effacé par le prochain `apply`.
 - **0 réplica** éteint l'application sans la supprimer : pratique pour économiser.
 - Les **requests** réservent des ressources. Sans place disponible, un pod reste `Pending`. Lors d'une mise à jour, les anciens pods continuent alors de servir.
-- Chaque modification du modèle de pod crée un **nouveau ReplicaSet**, ce qui prépare les mises à jour et les retours en arrière du TP06.
+- Chaque modification du modèle de pod crée un **nouveau ReplicaSet**, ce qui prépare les mises à jour et les retours en arrière du TP07.
 
 ➡️ Suite : [04 — Services et Ingress](../04-services/README.md)

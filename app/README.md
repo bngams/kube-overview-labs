@@ -19,11 +19,11 @@ Les tags officiels `before`, `after` et `latest` de `examplevotingapp_vote` poin
 
 | Ajout | Sert au |
 |---|---|
-| `APP_VERSION` (build arg) affiché dans un badge en haut à droite | TP6 (rolling update visible) |
-| design **v2** (dégradé violet, boutons arrondis) | TP6 |
-| **v3 cassée** : exige `VOTE_TITLE` sans valeur par défaut => `KeyError` au démarrage, `CrashLoopBackOff` | TP6 (diagnostic + rollback) et TP5 (la corriger par ConfigMap) |
+| `APP_VERSION` (build arg) affiché dans un badge en haut à droite | TP7 (rolling update visible) |
+| design **v2** (dégradé violet, boutons arrondis) | TP7 |
+| **v3 cassée** : exige `VOTE_TITLE` sans valeur par défaut => `KeyError` au démarrage, `CrashLoopBackOff` | TP7 (diagnostic + rollback) et TP6 (la corriger par ConfigMap) |
 | « Servi par : *nom du pod* » | TP2 et TP3 (on voit quel pod répond) |
-| `/healthz` | TP6 (probes) |
+| `/healthz` | TP7 (probes) |
 | `/crash` (arrête le PID 1) | TP2 (conteneur redémarré vs pod recréé) |
 | interface en français, plus de jQuery en `http://` (contenu mixte bloqué en HTTPS) | tous |
 

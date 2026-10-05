@@ -275,7 +275,7 @@ result       ClusterIP   10.108.244.243   <none>        80/TCP     1m
 vote         ClusterIP   10.105.13.80     <none>        80/TCP     8m
 ```
 
-> ⚖️ **Un raccourci assumé.** Le fichier `db.yml` contient le mot de passe de la base **en clair** (`postgres`). C'est une mauvaise pratique, gardée volontairement pour l'instant : au TP05, vous le rangerez dans un **Secret**. Autre simplification : la base ne garde pas ses données si son pod est remplacé. En production, on lui donnerait un **volume persistant**.
+> ⚖️ **Un raccourci assumé.** Le fichier `db.yml` contient le mot de passe de la base **en clair** (`postgres`). C'est une mauvaise pratique, gardée volontairement pour l'instant : au TP06, vous le rangerez dans un **Secret**. Autre simplification : la base ne garde pas ses données si son pod est remplacé. En production, on lui donnerait un **volume persistant**.
 
 ## 🗳️ 5 — Voter pour de vrai
 
@@ -474,4 +474,4 @@ Pour terminer, laissez l'application en place : elle servira au TP05. Vous pouve
 - Un **Ingress** est la porte d'entrée depuis l'extérieur : il aiguille les visites vers les Services, grâce à un **contrôleur d'Ingress** (Traefik, NGINX…).
 - `ClusterIP` pour l'intérieur, Ingress pour le web extérieur : c'est la combinaison la plus courante.
 
-➡️ Suite : [05 — Configuration, secrets et namespaces](../05-configuration/README.md)
+➡️ Suite : [05 — Isoler et encadrer](../05-isolation/README.md)

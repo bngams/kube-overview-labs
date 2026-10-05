@@ -1,8 +1,8 @@
-# 07 — Mission finale : mettre en production, puis réparer
+# 08 — Mission finale : mettre en production, puis réparer
 
-> **Mission à réaliser en binôme, en autonomie.** Aux TPs précédents, vous avez été guidés pas à pas pour acquérir les bases. Place à la pratique : vous allez **mettre en production** l'application complète dans un nouveau namespace, à partir de vos propres fichiers, puis jouer à la **chasse aux pannes** : votre binôme casse l'application en secret, vous la diagnostiquez et la réparez. Moins de commandes toutes faites ici : appuyez-vous sur vos fichiers, sur le [catalogue des pannes du TP06](../06-mises-a-jour/README.md#le-catalogue-des-pannes) et sur les indices. Le dossier [`solution/`](solution/) contient les réponses, à n'ouvrir qu'en dernier recours 😉.
+> **Mission à réaliser en binôme, en autonomie.** Aux TPs précédents, vous avez été guidés pas à pas pour acquérir les bases. Place à la pratique : vous allez **mettre en production** l'application complète dans un nouveau namespace, à partir de vos propres fichiers, puis jouer à la **chasse aux pannes** : votre binôme casse l'application en secret, vous la diagnostiquez et la réparez. Moins de commandes toutes faites ici : appuyez-vous sur vos fichiers, sur le [catalogue des pannes du TP07](../07-mises-a-jour/README.md#le-catalogue-des-pannes) et sur les indices. Le dossier [`solution/`](solution/) contient les réponses, à n'ouvrir qu'en dernier recours 😉.
 >
-> 🎯 **Niveau :** débutant, en fin de parcours. On suppose les TPs [02](../02-premier-deployment/README.md) à [06](../06-mises-a-jour/README.md) terminés : votre dossier `tp02` contient `vote.deploy.yml` (v3 avec sondes), `vote.svc.yml`, `vote.ingress.yml`, `vote.config.yml` (avec `VOTE_TITLE`) et `db.secret.yml`.
+> 🎯 **Niveau :** débutant, en fin de parcours. On suppose les TPs [02](../02-premier-deployment/README.md) à [07](../07-mises-a-jour/README.md) terminés : votre dossier `tp02` contient `vote.deploy.yml` (v3 avec sondes), `vote.svc.yml`, `vote.ingress.yml`, `vote.config.yml` (avec `VOTE_TITLE`) et `db.secret.yml`.
 
 ## ✨ Objectifs
 
@@ -12,33 +12,21 @@
 
 ## 🧹 0 — Faire place nette
 
-Votre application tourne dans `default`. La production aura son propre namespace, `prod` : commencez par vider `default`, pour repartir d'une situation claire et éviter que deux Ingress se disputent la porte d'entrée.
+Votre application tourne dans le namespace `vote-app` (TP05). La production aura son propre namespace, `prod` : commencez par supprimer `vote-app`, pour repartir d'une situation claire et éviter que deux Ingress se disputent la porte d'entrée. Supprimer un namespace supprime **tout ce qu'il contient** (Deployments, Services, ConfigMap, Secret, règles réseau…) ; vos fichiers, eux, restent intacts dans `tp02` : vous en aurez besoin juste après.
 
-Vérifiez d'abord qu'il ne reste pas de namespaces d'essai des TPs précédents : `kubectl get namespaces` ne doit montrer ni `recette`, ni `essai`, ni `quota` (supprimez-les avec `kubectl delete namespace <nom>` si besoin).
-
-Dans le terminal 1, depuis le dossier `tp02`, supprimez vos propres objets. `kubectl delete -f` supprime **dans le cluster** les objets qu'un fichier décrit (vos fichiers, eux, restent intacts : vous en aurez besoin juste après). La commande accepte plusieurs fichiers :
+Dans le terminal 1 :
 
 ```bash
-kubectl delete -f vote.ingress.yml -f vote.svc.yml -f vote.deploy.yml -f vote.config.yml -f db.secret.yml
+kubectl delete namespace vote-app
+kubectl config set-context --current --namespace=default
 ```
 
-Puis les 4 morceaux fournis, depuis leurs adresses :
+| Commande | Rôle |
+|---|---|
+| `kubectl delete namespace vote-app` | supprime le namespace et tout son contenu. Elle peut mettre une trentaine de secondes à rendre la main |
+| `kubectl config set-context --current --namespace=default` | revient au namespace par défaut d'origine, `default`. Vous désignerez `prod` explicitement avec `-n prod` |
 
-```bash
-kubectl delete -f https://raw.githubusercontent.com/bngams/kube-overview-labs/main/labs/04-services/assets/redis.yml
-kubectl delete -f https://raw.githubusercontent.com/bngams/kube-overview-labs/main/labs/05-configuration/assets/db.yml
-kubectl delete -f https://raw.githubusercontent.com/bngams/kube-overview-labs/main/labs/04-services/assets/worker.yml
-kubectl delete -f https://raw.githubusercontent.com/bngams/kube-overview-labs/main/labs/04-services/assets/result.yml
-```
-
-Si une commande affiche `NotFound` pour un objet déjà absent, ce n'est pas grave : elle supprime quand même les autres. Après une trentaine de secondes (la base met un peu de temps à s'arrêter), `kubectl get all` ne doit plus afficher que le Service `kubernetes`, qui appartient au cluster (son adresse et son âge varient) :
-
-```
-NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
-service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   5h
-```
-
-`kubectl get all` est un raccourci qui liste d'un coup les types d'objets les plus courants (pods, Services, Deployments, ReplicaSets).
+Vérifiez avec `kubectl get namespaces` : `vote-app` a disparu.
 
 ## 🚀 1 — La mission : mettre en production
 
@@ -54,14 +42,14 @@ Voici le **cahier des charges** de la mise en production, tel qu'un chef de proj
 | 6 | La page de vote est accessible par la **porte d'entrée** (Ingress, port 8000) |
 | 7 | Un vote apparaît sur la page des **résultats** |
 
-🚧 **À vous de jouer.** Créez le namespace, puis déployez tout dedans. Tout ce qu'il faut existe déjà : vos fichiers dans `tp02`, et les 4 fichiers fournis, dont les adresses sont celles de la section 0 (attention : pour `db`, c'est bien la version du **TP05**, dans le dossier `05-configuration`, celle qui utilise le Secret). Pour envoyer un fichier dans un namespace, vous connaissez l'option depuis le TP05 : `-n prod`, à placer avant ou après `-f`, peu importe.
+🚧 **À vous de jouer.** Créez le namespace, puis déployez tout dedans. Tout ce qu'il faut existe déjà : vos fichiers dans `tp02`, et les 4 fichiers fournis, dont les adresses sont celles de la section 0 (attention : pour `db`, c'est bien la version du **TP06**, dans le dossier `06-configuration`, celle qui utilise le Secret). Pour envoyer un fichier dans un namespace, vous connaissez l'option depuis le TP05 : `-n prod`, à placer avant ou après `-f`, peu importe.
 
 Avant de vous lancer, réfléchissez à l'**ordre** : quels objets les autres attendent-ils ?
 
 <details>
 <summary>💡 Indice 1 : par quoi commencer ?</summary>
 
-Les pods de `vote` lisent la ConfigMap, ceux de `db` lisent le Secret. S'ils démarrent avant, ils restent en `CreateContainerConfigError` (TP05). Créez donc d'abord le namespace, puis la ConfigMap et le Secret, et seulement ensuite les Deployments.
+Les pods de `vote` lisent la ConfigMap, ceux de `db` lisent le Secret. S'ils démarrent avant, ils restent en `CreateContainerConfigError` (TP06). Créez donc d'abord le namespace, puis la ConfigMap et le Secret, et seulement ensuite les Deployments.
 
 </details>
 
@@ -77,7 +65,7 @@ Le namespace se crée avec `kubectl create namespace prod` (TP05). Ensuite, chaq
 
 1. le namespace `prod` ;
 2. le Secret et la ConfigMap ;
-3. `redis`, `db` (version TP05), `worker`, `result` ;
+3. `redis`, `db` (version TP06), `worker`, `result` ;
 4. `vote` (Deployment et Service) ;
 5. l'Ingress.
 
@@ -134,7 +122,7 @@ L'application est en production… et les incidents commencent. Quatre pannes on
 
 1. Le **copilote** choisit une panne **pas encore jouée** (1 à 4), sans dire laquelle, pendant que le pilote regarde ailleurs. Il ouvre un **terminal 4** (icône **Scinder le terminal**) et y applique la panne :
    ```bash
-   kubectl apply -n prod -f https://raw.githubusercontent.com/bngams/kube-overview-labs/main/labs/07-mission-finale/pannes/panne-1.yml
+   kubectl apply -n prod -f https://raw.githubusercontent.com/bngams/kube-overview-labs/main/labs/08-mission-finale/pannes/panne-1.yml
    ```
    (en remplaçant `panne-1` par le numéro choisi). Il **ferme ensuite ce terminal 4** (icône 🗑️) : la réponse de la commande trahirait l'objet saboté. **N'ouvrez pas** les fichiers de pannes : ce serait tricher 😉.
 2. Le **pilote** constate le symptôme dans le navigateur, mène l'enquête avec `kubectl` (comptez une quinzaine de minutes avant d'ouvrir les indices), puis **répare** en réappliquant le bon fichier, choisi dans le tableau ci-dessous. Interdit de supprimer le namespace pour tout recommencer !
@@ -150,7 +138,7 @@ Pour réparer, il faut savoir quel fichier décrit le bon état de chaque objet 
 | ConfigMap `vote-config` | `vote.config.yml` |
 | Secret `db-credentials` | `db.secret.yml` |
 | `redis`, `worker`, `result` (Deployment et Service) | leurs adresses du TP04 (section 0) |
-| `db` (Deployment et Service) | son adresse du TP05 (section 0) |
+| `db` (Deployment et Service) | son adresse du TP06 (section 0) |
 
 Laissez les tunnels des terminaux 2 (en local) et 3 ouverts : vous en aurez besoin pour observer les symptômes. Si l'un d'eux s'est arrêté (l'invite de commande est revenue), relancez simplement la même commande. Après chaque réparation, attendez quelques secondes et revérifiez les 7 exigences ; si les résultats ne bougent toujours pas, relancez `worker` et `result` comme indiqué à la section 2.
 
@@ -207,7 +195,7 @@ Bloqués ? Les indices sont classés par **symptôme**, puisque vous ne savez pa
 
 - Qui transporte les votes de `redis` vers `db` ? (TP04, section 4.)
 - Regardez l'état des pods de ce morceau, puis décrivez celui qui est en échec.
-- Le statut affiché fait partie du catalogue du TP06.
+- Le statut affiché fait partie du catalogue du TP07.
 
 </details>
 
@@ -222,6 +210,7 @@ Bloqués ? Les indices sont classés par **symptôme**, puisque vous ne savez pa
 
 - **Inventez votre propre panne :** écrivez un fichier qui sabote un objet (une mauvaise étiquette, un mauvais port, une version inexistante…), faites-la diagnostiquer par un autre binôme, puis échangez.
 - **Tout en une commande :** rangez tous les fichiers de la mission dans un même dossier, puis `kubectl apply -n prod -f .` les applique tous d'un coup (le `.` désigne le dossier courant). Vous découvrirez pourquoi l'ordre peut alors poser problème… et pourquoi des outils comme Helm ou Kustomize existent.
+- **Fermer le réseau de la production :** appliquez aussi dans `prod` les règles réseau du TP05 (`kubectl apply -n prod -f` avec l'adresse de `vote-app.netpol.yml`), puis vérifiez avec le pod de test que la base n'est plus joignable.
 - **Nettoyage final :** à la fin de la formation, `kubectl delete namespace prod` supprime toute l'application en une commande.
 
 ## Récap
@@ -232,4 +221,4 @@ Bloqués ? Les indices sont classés par **symptôme**, puisque vous ne savez pa
 - Le même symptôme peut avoir des causes différentes : c'est l'enquête, pas l'intuition, qui tranche.
 - Documenter chaque incident (la fiche) permet d'éviter qu'il se reproduise.
 
-➡️ Pour terminer : [l'étude de cas « Kubernetes dans votre projet »](../08-etude-de-cas/README.md)
+➡️ Pour terminer : [l'étude de cas « Kubernetes dans votre projet »](../09-etude-de-cas/README.md)

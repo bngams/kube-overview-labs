@@ -393,7 +393,7 @@ Les deux pannes de ce TP se comparent ainsi :
 | Colonne `RESTARTS` | repart à 0 | augmente de 1 |
 | Le tunnel (`port-forward`) | casse, il faut le relancer | continue de fonctionner |
 
-> 🗣️ **En réunion projet.** Quand un développeur dit « *le pod redémarre en boucle* », il parle de la colonne `RESTARTS` qui augmente sans cesse : l'application plante, Kubernetes la relance, elle replante… Le statut affiché devient alors `CrashLoopBackOff`. Kubernetes fait son travail, mais **l'application a un problème** que lui ne peut pas corriger. Vous en provoquerez un au TP06.
+> 🗣️ **En réunion projet.** Quand un développeur dit « *le pod redémarre en boucle* », il parle de la colonne `RESTARTS` qui augmente sans cesse : l'application plante, Kubernetes la relance, elle replante… Le statut affiché devient alors `CrashLoopBackOff`. Kubernetes fait son travail, mais **l'application a un problème** que lui ne peut pas corriger. Vous en provoquerez un au TP07.
 
 ## 🧹 7 — Supprimer le Deployment
 
@@ -428,7 +428,7 @@ Cette fois, le pod a disparu **et ne revient pas**. En supprimant le Deployment,
 >     └── Pod vote-644d47956b-hjnlf   <- l'exemplaire qui tourne
 > ```
 >
-> Vous reverrez le ReplicaSet au TP06 : il joue un rôle clé dans les mises à jour.
+> Vous reverrez le ReplicaSet au TP07 : il joue un rôle clé dans les mises à jour.
 
 Pour terminer, **remettez l'application en place** depuis le terminal 1 : elle servira au TP03.
 

@@ -161,7 +161,7 @@ Ouvrez la version 2.0 dans un nouvel onglet :
 
 Vous voyez « **Thé ou Café ?** », avec un nouveau design et un badge **v2.0**. Dans l'autre onglet, la version 1.0 tourne toujours. Vérifiez-le avec `docker ps` : `vote` et `vote-v2` y figurent tous les deux, en plus des conteneurs du cluster.
 
-> 🧠 **Ce qui vient de se passer.** Deux versions de la même application tournent **sur la même machine**, chacune dans sa boîte, sans se gêner. Et la seconde a été **configurée sans être modifiée** : la même image peut servir en test, en préproduction et en production, avec des réglages différents. Vous retrouverez cette idée au TP05 avec les ConfigMaps de Kubernetes.
+> 🧠 **Ce qui vient de se passer.** Deux versions de la même application tournent **sur la même machine**, chacune dans sa boîte, sans se gêner. Et la seconde a été **configurée sans être modifiée** : la même image peut servir en test, en préproduction et en production, avec des réglages différents. Vous retrouverez cette idée au TP06 avec les ConfigMaps de Kubernetes.
 
 ## 📖 4 — D'où vient une image ? La recette
 

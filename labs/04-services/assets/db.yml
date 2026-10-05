@@ -1,5 +1,5 @@
 # db : la base PostgreSQL qui garde les votes. Joignable dans le cluster sous le nom "db".
-# Les identifiants sont écrits en clair : c'est volontaire pour l'instant, on les rangera dans un Secret au TP05.
+# Les identifiants sont écrits en clair : c'est volontaire pour l'instant, on les rangera dans un Secret au TP06.
 apiVersion: apps/v1
 kind: Deployment
 metadata:

@@ -1,4 +1,4 @@
-# db, version TP05 : les identifiants viennent du Secret "db-credentials" (à créer avant).
+# db, version TP06 : les identifiants viennent du Secret "db-credentials" (à créer avant).
 apiVersion: apps/v1
 kind: Deployment
 metadata:
