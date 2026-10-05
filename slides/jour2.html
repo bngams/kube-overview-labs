@@ -227,6 +227,27 @@
 </section>
 
 <section>
+  <h2>Kyverno : des garde-fous automatiques</h2>
+  <svg class="diagram" viewBox="0 0 900 190" width="820">
+    <rect class="box f-yellow" x="10" y="60" width="150" height="70" rx="12"/><text class="ts" x="85" y="92" text-anchor="middle">kubectl apply</text><text class="ts muted" x="85" y="116" text-anchor="middle">un fichier YAML</text>
+    <path class="arrow" d="M165 95 H 215"/>
+    <rect class="box f-violet" x="220" y="60" width="150" height="70" rx="12"/><text class="ts" x="295" y="92" text-anchor="middle">API</text><text class="ts muted" x="295" y="116" text-anchor="middle">de Kubernetes</text>
+    <path class="arrow" d="M375 95 H 425"/>
+    <rect class="box f-orange" x="430" y="45" width="190" height="100" rx="14"/><text class="t" x="525" y="88" text-anchor="middle">Kyverno</text><text class="ts muted" x="525" y="118" text-anchor="middle">vérifie les règles</text>
+    <path class="arrow" d="M625 75 L 700 40"/><path class="arrow-red" d="M625 115 L 700 150"/>
+    <rect class="box f-green" x="705" y="10" width="185" height="56" rx="12"/><text class="ts" x="797" y="44" text-anchor="middle">✅ accepté</text>
+    <rect class="box f-red" x="705" y="124" width="185" height="56" rx="12"/><text class="ts" x="797" y="148" text-anchor="middle">❌ refusé,</text><text class="ts" x="797" y="170" text-anchor="middle">avec la raison</text>
+  </svg>
+  <div class="cols">
+    <div class="card red"><h4>🛑 Valider</h4><p class="small">Refuser ce qui ne respecte pas les règles : image <code>:latest</code>, pod sans réservations, image hors du registre de l'entreprise…</p></div>
+    <div class="card blue"><h4>✏️ Modifier</h4><p class="small">Compléter automatiquement : ajouter l'étiquette de l'équipe, des réservations par défaut…</p></div>
+    <div class="card green"><h4>🧩 Générer</h4><p class="small">Créer automatiquement : chaque nouveau namespace reçoit son quota et sa règle réseau « tout fermer ».</p></div>
+  </div>
+  <p class="small mt">Les règles s'écrivent elles-mêmes en YAML, comme le reste. Projet <b>diplômé de la CNCF</b> en mars 2026 ; alternative : OPA Gatekeeper.</p>
+  <aside class="notes">Kyverno s'installe dans le cluster comme un contrôleur d'admission : chaque objet envoyé à l'API passe par lui avant d'être enregistré. Message pour les chefs de projet : les règles de sécurité et de bonnes pratiques ne reposent plus sur la vigilance de chacun, elles sont vérifiées automatiquement, avant la production. « Le déploiement a été refusé par une policy » = Kyverno a fait son travail. Pas de manipulation dans le TP05 : c'est une ouverture.</aside>
+</section>
+
+<section>
   <div class="tp">
     <p class="label">À vous de jouer · environ 30 min</p>
     <h2>TP05 : isoler et encadrer</h2>
