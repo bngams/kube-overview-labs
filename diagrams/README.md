@@ -11,7 +11,7 @@ Pour l'ouvrir : [excalidraw.com](https://excalidraw.com), menu ☰ > **Ouvrir** 
 
 ## Idées infra du jour 1 : de la VM à l'orchestrateur
 
-[`idees-infra-j1.excalidraw`](idees-infra-j1.excalidraw) contient **7 cadres**, à présenter dans l'ordre (dans Excalidraw, chaque cadre se sélectionne et s'exporte séparément) :
+[`idees-infra-j1.excalidraw`](idees-infra-j1.excalidraw) contient **8 cadres**, à présenter dans l'ordre (dans Excalidraw, chaque cadre se sélectionne et s'exporte séparément) :
 
 | Cadre | Contenu |
 |---|---|
@@ -22,6 +22,7 @@ Pour l'ouvrir : [excalidraw.com](https://excalidraw.com), menu ☰ > **Ouvrir** 
 | 5 | Le piège : Kubernetes sur un seul nœud = Compose avec d'autres commandes |
 | 6 | Les vraies décisions : Rancher + RKE2 sur site, 3 nœuds de contrôle, pool Linux, nœud Windows (`nodeSelector`), Ingress, stockage, sauvegardes |
 | 7 | Tableau récapitulatif VM / conteneurs / orchestrateur |
+| 8 | Synthèse : l'infographie [`de-la-vm-a-kubernetes.png`](idees-infra-j1/de-la-vm-a-kubernetes.png) (« De la VM à Kubernetes : même application, différentes façons de l'exploiter ») |
 
 **Versions SVG** (autonomes, polices intégrées) : [`idees-infra-j1/`](idees-infra-j1/), un fichier par cadre. **Version HTML** : [`slides/idees-infra-j1.html`](../slides/idees-infra-j1.html), un schéma par slide, avec notes formateur ([en ligne](https://bngams.github.io/kube-overview-labs/slides/idees-infra-j1.html)).
 

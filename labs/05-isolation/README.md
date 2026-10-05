@@ -19,14 +19,25 @@ On continue dans le dossier `tp02`, ouvert dans VS Code, avec un **terminal 1** 
 
 ### 🅰️ Mode local uniquement : un cluster capable d'appliquer des règles réseau
 
-En mode cloud, passez directement à la section 1. En mode local, si vous avez démarré minikube avec l'option `--cni=calico` au TP00, passez aussi à la section 1.
+En mode cloud, passez directement à la section 1.
 
-Les règles réseau ne fonctionnent que si le réseau du cluster sait les appliquer. Un minikube démarré sans cette option ne le sait pas. Il faut le recréer avec un réseau qui en est capable, **Calico**. Cela prend environ 5 minutes. Votre application sera redéployée de toute façon à la section 1 : vous ne perdez rien.
+Les règles réseau ne fonctionnent que si le réseau du cluster sait les appliquer. C'est le rôle d'un composant réseau comme **Calico**, que minikube n'installe que si on le lui demande (option `--cni=calico`). Vérifiez si le vôtre l'a :
+
+```bash
+kubectl get pods -n kube-system -l k8s-app=calico-node
+```
+
+- La commande affiche un pod `calico-node-…` `Running` : votre cluster est prêt, passez à la section 1.
+- Elle répond `No resources found` : il faut recréer le cluster, comme ci-dessous.
+- Elle échoue avec `connection refused` : minikube est arrêté. Lancez `minikube start`, puis refaites la vérification.
+
+Pour recréer le cluster avec Calico (5 à 10 minutes) :
 
 ```bash
 minikube delete
 minikube start --driver=docker --cni=calico
 minikube addons enable ingress
+kubectl wait -n ingress-nginx --for=condition=Ready pod -l app.kubernetes.io/component=controller --timeout=300s
 ```
 
 | Commande | Rôle |
@@ -34,8 +45,9 @@ minikube addons enable ingress
 | `minikube delete` | supprime le cluster actuel. ⚠️ Un simple `minikube stop` ne suffit pas : un cluster existant garde son ancien réseau, et l'option `--cni` serait ignorée **sans message d'erreur** |
 | `minikube start --cni=calico` | recrée le cluster avec le réseau Calico |
 | `minikube addons enable ingress` | réactive la porte d'entrée du TP04 |
+| `kubectl wait …` | attend que la porte d'entrée soit prête, comme au TP04 |
 
-Le démarrage se termine par la ligne `Done! kubectl is now configured to use "minikube" cluster…`, puis l'activation par `The 'ingress' addon is enabled`.
+La dernière commande se termine par `condition met`. Votre application a disparu avec l'ancien cluster, et les tunnels des TP précédents ne fonctionnent plus : c'est normal, tout est redéployé à la section 1. Vos fichiers dans `tp02`, eux, sont intacts.
 
 ## 🗂️ 1 — Ranger l'application dans son namespace
 
@@ -55,13 +67,11 @@ kube-public       Active   1d
 kube-system       Active   1d
 ```
 
-En mode local, vous verrez aussi `ingress-nginx`, le namespace du contrôleur d'Ingress. `kube-system` contient les composants de Kubernetes lui-même : n'y touchez jamais.
+Vos âges seront différents. En mode local, vous verrez aussi `ingress-nginx`, le namespace du contrôleur d'Ingress. `kube-system` contient les composants de Kubernetes lui-même : n'y touchez jamais.
 
-### Étape 1 — Faire le ménage dans `default` (mode cloud)
+### Étape 1 — Faire le ménage dans `default`
 
-En mode local, le cluster est neuf : passez à l'étape 2.
-
-En mode cloud, supprimez l'application de `default`. Vos fichiers, eux, restent intacts : `kubectl delete -f` supprime seulement les objets dans le cluster.
+Si vous venez de recréer votre cluster local (`minikube delete`), il est vide : passez à l'étape 2. Dans tous les autres cas (mode cloud, ou minikube qui avait déjà Calico), votre application tourne encore dans `default` : supprimez-la. Vos fichiers, eux, restent intacts : `kubectl delete -f` supprime seulement les objets dans le cluster.
 
 ```bash
 kubectl delete -f vote.ingress.yml -f vote.svc.yml -f vote.deploy.yml
@@ -82,13 +92,14 @@ kubectl config set-context --current --namespace=vote-app
 
 ```
 namespace/vote-app created
-Context "minikube" modified.
+Context "minikube" modified.      <- en mode local
+Context "k3d-tp" modified.        <- en mode cloud
 ```
 
 | Commande | Rôle |
 |---|---|
 | `kubectl create namespace vote-app` | crée le namespace |
-| `kubectl config set-context --current --namespace=vote-app` | règle le namespace par défaut de votre `kubectl` (le nom du contexte affiché varie : `minikube` en local, `k3d-tp` en cloud) |
+| `kubectl config set-context --current --namespace=vote-app` | règle le namespace par défaut de votre `kubectl` |
 
 ### Étape 3 — Redéployer l'application
 
@@ -102,15 +113,18 @@ kubectl apply -f https://raw.githubusercontent.com/bngams/kube-overview-labs/mai
 kubectl apply -f vote.deploy.yml -f vote.svc.yml -f vote.ingress.yml
 ```
 
-En mode local, si la dernière commande échoue avec `failed calling webhook`, le contrôleur d'Ingress démarre encore : patientez une minute et relancez-la.
-
 Vérifiez que tout tourne. Relancez la commande jusqu'à ce que les 7 pods soient `Running` (en mode local, les images se téléchargent de nouveau) :
 
 ```bash
 kubectl get pods
 ```
 
-Rouvrez la page de vote par la porte d'entrée, comme au TP04 : `https://lab-kubeN-8000.deltavia.com` en mode cloud ; en mode local, relancez dans un **terminal 2** le tunnel `kubectl port-forward -n ingress-nginx service/ingress-nginx-controller 8000:80`, puis ouvrez `http://localhost:8000`.
+Rouvrez les deux pages, comme au TP04 :
+
+| Page | 🅰️ Local | 🅱️ Cloud |
+|---|---|---|
+| Vote | dans un **terminal 2** : `kubectl port-forward -n ingress-nginx service/ingress-nginx-controller 8000:80`, puis `http://localhost:8000` | `https://lab-kubeN-8000.deltavia.com` |
+| Résultats | dans un **terminal 3** : `kubectl port-forward service/result 8081:80`, puis `http://localhost:8081` | même commande dans un **terminal 3**, puis `https://lab-kubeN-8081.deltavia.com` |
 
 > 🧠 **Ce qui vient de se passer.** L'application est identique, mais elle vit maintenant dans son propre espace. Un `kubectl get pods` sans option ne montre plus que ses pods, et un autre projet pourrait avoir ses propres `vote` ou `redis` dans un autre namespace, sans conflit.
 
@@ -160,7 +174,7 @@ NAME   READY   UP-TO-DATE   AVAILABLE   AGE
 vote   8/10    8            8           2h
 ```
 
-Seuls 8 exemplaires ont été créés : 8 `vote` et les 4 autres pods font 12, le plafond. Le quota tient ses comptes :
+Regardez la colonne `UP-TO-DATE` : 8 exemplaires seulement ont été créés (en mode local, `READY` peut être un peu plus bas si votre poste manque de processeur). Les 8 `vote` et les 4 autres pods font 12, le plafond. Le quota tient ses comptes :
 
 ```bash
 kubectl describe quota pods-max
@@ -196,7 +210,7 @@ Un quota peut plafonner bien d'autres choses que le nombre de pods :
 | Règle | Ce qu'elle encadre | Exemple |
 |---|---|---|
 | **ResourceQuota** | le **total** d'un namespace | 12 pods, 4 processeurs réservés, 8 Gi de mémoire, 2 volumes… |
-| **LimitRange** | chaque pod **individuellement** | réservation par défaut si le fichier n'en donne pas, maximum par conteneur |
+| **LimitRange** (plage de limites) | chaque pod **individuellement** | réservation par défaut si le fichier n'en donne pas, maximum par conteneur |
 
 > 🗣️ **En réunion projet.** Les quotas servent à **partager un cluster** entre équipes sans qu'une seule ne monopolise tout, et à **répartir les coûts** : la somme des quotas dit qui consomme quoi.
 
@@ -206,7 +220,7 @@ Une **NetworkPolicy** est une règle réseau qui dit, pour un groupe de pods : �
 
 ### Étape 1 — S'entraîner dans l'éditeur visuel
 
-Avant d'appliquer quoi que ce soit, prenez 10 minutes pour manipuler l'éditeur visuel [editor.networkpolicy.io](https://editor.networkpolicy.io/) (aucun compte nécessaire).
+Avant d'appliquer quoi que ce soit, prenez une dizaine de minutes pour manipuler l'éditeur visuel [editor.networkpolicy.io](https://editor.networkpolicy.io/) (aucun compte nécessaire, interface en anglais).
 
 | Zone de l'éditeur | Rôle |
 |---|---|
@@ -256,7 +270,7 @@ redis-pour-vote-et-worker   app=redis              1s
 tout-fermer                 <none>                 1s
 ```
 
-Relancez le pod de test de la section 2 (flèche ↑ pour retrouver la commande) :
+Relancez le pod de test de la section 2 (recopiez la commande) :
 
 ```
 db: bloqué
@@ -264,11 +278,13 @@ redis: bloqué
 pod "test" deleted from vote-app namespace
 ```
 
-Le pod de test ne joint plus ni la base ni redis : il ne porte aucune des étiquettes autorisées. Vérifiez maintenant que l'application, elle, fonctionne toujours : rechargez la page de vote et **votez**. La coche apparaît, et le vote est bien enregistré, puisque `vote` a toujours le droit de parler à `redis`, et `worker` à `db`.
+> ⚠️ **Encore `ouvert` ?** Votre cluster n'applique pas les règles réseau. En mode local, revoyez l'encadré du début : minikube doit avoir Calico.
+
+Le pod de test ne joint plus ni la base ni redis : il ne porte aucune des étiquettes autorisées. Vérifiez maintenant que l'application, elle, fonctionne toujours : rechargez la page de vote et **votez**. La coche apparaît, et le compteur de la page des résultats bouge : `vote` a toujours le droit de parler à `redis`, et `worker` à `db`.
 
 > 🧠 **Ce qui vient de se passer.** Les règles s'appuient sur les **étiquettes** des pods, comme les Services et les Deployments : « les pods `app: worker` peuvent parler aux pods `app: db` ». Elles suivent donc les pods automatiquement, même quand ils sont remplacés et changent d'adresse.
 >
-> ⚖️ Ces règles ne portent que sur le trafic **entrant**. On peut aussi limiter le trafic **sortant** (*egress*), par exemple pour qu'aucun pod ne puisse joindre Internet, mais il faut alors penser à autoriser l'annuaire DNS du cluster, sans quoi plus rien ne se trouve par son nom.
+> ⚖️ Ces règles ne portent que sur le trafic **entrant**. On peut aussi limiter le trafic **sortant** (*egress*), par exemple pour qu'aucun pod ne puisse joindre Internet, mais il faut alors penser à autoriser l'annuaire du cluster (le DNS du TP04), sans quoi plus rien ne se trouve par son nom.
 >
 > 📖 [NetworkPolicies, documentation officielle](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
 
@@ -287,8 +303,8 @@ Ces règles sont nombreuses et faciles à oublier. Des outils vérifient automat
 
 | Outil | Exemples de règles |
 |---|---|
-| **Kyverno** (projet de la CNCF) | « toute image doit venir de notre registre », « tout pod doit avoir des réservations », « interdire la version `:latest` », « tout namespace reçoit automatiquement un quota et une règle `tout-fermer` » |
-| **OPA Gatekeeper** | les mêmes besoins, avec un langage de règles plus général (Rego) |
+| **Kyverno** | « toute image doit venir de notre registre », « tout pod doit avoir des réservations », « interdire la version `:latest` », « tout namespace reçoit automatiquement un quota et une règle `tout-fermer` » |
+| **OPA Gatekeeper** | les mêmes besoins, avec un autre langage de règles |
 
 > 🗣️ **En réunion projet.** « *Le déploiement a été refusé par une policy* » : un moteur comme Kyverno a bloqué un fichier qui ne respectait pas une règle de l'entreprise. C'est voulu : les règles de sécurité et de bonnes pratiques sont vérifiées **automatiquement**, avant même d'arriver en production.
 
@@ -296,7 +312,7 @@ Ces règles sont nombreuses et faciles à oublier. Des outils vérifient automat
 
 - **Tous les namespaces d'un coup :** `kubectl get pods -A` (pour *all namespaces*) liste les pods de tout le cluster, avec une colonne `NAMESPACE`.
 - **Changer de namespace par défaut :** `kubectl config set-context --current --namespace=default` vous ramène dans `default`. Pensez à revenir ensuite dans `vote-app`.
-- **Tester une règle réseau :** supprimez la règle `pages-web-ouvertes` (`kubectl delete networkpolicy pages-web-ouvertes`), puis rechargez la page de vote : elle ne répond plus, puisque même le contrôleur d'Ingress n'a plus le droit d'entrer. Réappliquez ensuite le fichier.
+- **Tester une règle réseau :** supprimez la règle `pages-web-ouvertes` (`kubectl delete networkpolicy pages-web-ouvertes`), patientez quelques secondes, puis rechargez la page de vote : une erreur (`502` ou `504`, parfois au bout d'une minute) remplace la page, puisque même le contrôleur d'Ingress n'a plus le droit d'entrer. Réappliquez ensuite le fichier.
 - **Visualiser vos règles :** collez le contenu de [`assets/vote-app.netpol.yml`](assets/vote-app.netpol.yml), une règle à la fois, dans la zone YAML de l'éditeur visuel.
 
 ## 🎉 Challenge final

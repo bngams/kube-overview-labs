@@ -179,7 +179,19 @@ for i,r in enumerate(rows):
         xx=x0+sum(cw[:j])
         box(xx,yy,cw[j]-10,rh,c,"grey" if j==0 else "white",16)
 
+# ------------------------------------------------------------------ 8. Synthèse (infographie)
+import base64, os
+IMG=os.path.join(os.path.dirname(os.path.abspath(__file__)),"..","idees-infra-j1","de-la-vm-a-kubernetes.png")
+files={}
+if os.path.exists(IMG):
+    X,Y=frame(*pos(7),FW,FH,"8 · Synthèse")
+    fid="de-la-vm-a-kubernetes"
+    files[fid]={"mimeType":"image/png","id":fid,"created":1,
+                "dataURL":"data:image/png;base64,"+base64.b64encode(open(IMG,"rb").read()).decode()}
+    w=FW-40; h=w*1024/1536
+    els.append(base("image",X+20,Y+(FH-h)/2,w,h,fileId=fid,status="saved",scale=[1,1],backgroundColor="transparent",strokeColor="transparent"))
+
 doc_={"type":"excalidraw","version":2,"source":"https://github.com/bngams/kube-overview-labs","elements":els,
-      "appState":{"viewBackgroundColor":"#ffffff","gridSize":None},"files":{}}
+      "appState":{"viewBackgroundColor":"#ffffff","gridSize":None},"files":files}
 json.dump(doc_,open("idees-infra-j1.excalidraw","w"),ensure_ascii=False,indent=1)
 print(len(els),"éléments,", sum(1 for e in els if e['type']=='frame'),"cadres")
