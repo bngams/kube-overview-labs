@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Récap du jour 1</title>
+<title>Idées infra, jour 1</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.2.1/reveal.min.css">
@@ -17,7 +17,7 @@
 <div class="reveal"><div class="slides">
 
 <section>
-  <p class="tagline">Récap du jour 1</p>
+  <p class="tagline">Idées infra · jour 1</p>
   <h1>De la VM à l'orchestrateur</h1>
   <h3>Déployer la même application de vote, trois fois</h3>
   <ol class="small left" style="display:inline-block">
@@ -25,41 +25,41 @@
     <li>Avec des conteneurs</li>
     <li>Avec un orchestrateur</li>
   </ol>
-  <aside class="notes">Récap de fin de jour 1 (ou ouverture du jour 2). Les scénarios A et B, et les tailles de manuels, sont fictifs. Fichier source modifiable : diagrams/recap-j1.excalidraw.</aside>
+  <aside class="notes">Idées d'infrastructure, en fin de jour 1 (ou en ouverture du jour 2). Les scénarios A et B, et les tailles de manuels, sont fictifs. Fichier source modifiable : diagrams/idees-infra-j1.excalidraw.</aside>
 </section>
 
 <section>
-  <img class="schema" src="../diagrams/svg/1-vm-unique.svg" alt="Scénario A : une seule VM qui fait tourner les 5 services">
+  <img class="schema" src="../diagrams/idees-infra-j1/1-vm-unique.svg" alt="Scénario A : une seule VM qui fait tourner les 5 services">
   <aside class="notes">Tout est installé à la main sur une seule VM. Faire imaginer le manuel de déploiement. Scaling vertical facile, horizontal difficile (et la base ?). Les éléments en pointillés n'existent pas : c'est ce qu'il faudrait concevoir pour la haute disponibilité.</aside>
 </section>
 
 <section>
-  <img class="schema" src="../diagrams/svg/2-plusieurs-vm.svg" alt="Scénario B : une VM Linux et une VM Windows Server">
+  <img class="schema" src="../diagrams/idees-infra-j1/2-plusieurs-vm.svg" alt="Scénario B : une VM Linux et une VM Windows Server">
   <aside class="notes">Scénario fictif mais très réaliste : un ancien composant .NET Framework impose un Windows Server. Deux OS, deux manuels, des adresses IP en dur entre les VM.</aside>
 </section>
 
 <section>
-  <img class="schema" src="../diagrams/svg/3-conteneurs-a.svg" alt="Scénario A conteneurisé avec un registre d'images et docker compose">
+  <img class="schema" src="../diagrams/idees-infra-j1/3-conteneurs-a.svg" alt="Scénario A conteneurisé avec un registre d'images et docker compose">
   <aside class="notes">Le registre apparaît. Le déploiement devient « installer le runtime, docker compose up ». On peut dupliquer les conteneurs sur la machine, mais il faut un reverse proxy pour router. Toujours une seule machine.</aside>
 </section>
 
 <section>
-  <img class="schema" src="../diagrams/svg/4-conteneurs-b.svg" alt="Scénario B conteneurisé : composants Linux regroupés, worker sur Windows">
+  <img class="schema" src="../diagrams/idees-infra-j1/4-conteneurs-b.svg" alt="Scénario B conteneurisé : composants Linux regroupés, worker sur Windows">
   <aside class="notes">Une fois conteneurisés, db et result (images Linux) rejoignent la VM Linux. Piège classique : une image Linux ne tourne pas sur un hôte Windows ; la VM Windows reste tant que le worker n'est pas porté.</aside>
 </section>
 
 <section>
-  <img class="schema" src="../diagrams/svg/5-le-piege.svg" alt="Le piège : Kubernetes sur un seul nœud">
+  <img class="schema" src="../diagrams/idees-infra-j1/5-le-piege.svg" alt="Le piège : Kubernetes sur un seul nœud">
   <aside class="notes">C'est exactement l'environnement de nos TP : parfait pour apprendre, pas pour la production. On gagne l'auto-réparation et les mises à jour progressives, pas la haute disponibilité.</aside>
 </section>
 
 <section>
-  <img class="schema" src="../diagrams/svg/6-vraies-decisions.svg" alt="Un vrai cluster Rancher RKE2 avec nœuds Linux et Windows">
+  <img class="schema" src="../diagrams/idees-infra-j1/6-vraies-decisions.svg" alt="Un vrai cluster Rancher RKE2 avec nœuds Linux et Windows">
   <aside class="notes">Exemple sur site avec Rancher (open source, SUSE) et RKE2. Le plan de contrôle est toujours sous Linux ; un nœud Windows accueille le worker grâce à nodeSelector. Passer en revue les 6 décisions à gauche.</aside>
 </section>
 
 <section>
-  <img class="schema" src="../diagrams/svg/7-recapitulatif.svg" alt="Tableau récapitulatif VM, conteneurs, orchestrateur">
+  <img class="schema" src="../diagrams/idees-infra-j1/7-recapitulatif.svg" alt="Tableau récapitulatif VM, conteneurs, orchestrateur">
   <aside class="notes">Faire compléter oralement le tableau par la salle avant de l'afficher, si le temps le permet.</aside>
 </section>
 

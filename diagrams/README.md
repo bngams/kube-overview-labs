@@ -9,9 +9,9 @@
 
 Pour l'ouvrir : [excalidraw.com](https://excalidraw.com), menu ☰ > **Ouvrir** (ou glisser-déposer le fichier dans la page). Les mêmes schémas existent en version propre dans les slides.
 
-## Récap du jour 1 : de la VM à l'orchestrateur
+## Idées infra du jour 1 : de la VM à l'orchestrateur
 
-[`recap-j1.excalidraw`](recap-j1.excalidraw) contient **7 cadres**, à présenter dans l'ordre (dans Excalidraw, chaque cadre se sélectionne et s'exporte séparément) :
+[`idees-infra-j1.excalidraw`](idees-infra-j1.excalidraw) contient **7 cadres**, à présenter dans l'ordre (dans Excalidraw, chaque cadre se sélectionne et s'exporte séparément) :
 
 | Cadre | Contenu |
 |---|---|
@@ -23,6 +23,6 @@ Pour l'ouvrir : [excalidraw.com](https://excalidraw.com), menu ☰ > **Ouvrir** 
 | 6 | Les vraies décisions : Rancher + RKE2 sur site, 3 nœuds de contrôle, pool Linux, nœud Windows (`nodeSelector`), Ingress, stockage, sauvegardes |
 | 7 | Tableau récapitulatif VM / conteneurs / orchestrateur |
 
-**Versions SVG** (autonomes, polices intégrées) : [`svg/`](svg/), un fichier par cadre. **Version HTML** : [`slides/recap-j1.html`](../slides/recap-j1.html), un schéma par slide, avec notes formateur ([en ligne](https://bngams.github.io/kube-overview-labs/slides/recap-j1.html)).
+**Versions SVG** (autonomes, polices intégrées) : [`idees-infra-j1/`](idees-infra-j1/), un fichier par cadre. **Version HTML** : [`slides/idees-infra-j1.html`](../slides/idees-infra-j1.html), un schéma par slide, avec notes formateur ([en ligne](https://bngams.github.io/kube-overview-labs/slides/idees-infra-j1.html)).
 
-Les schémas sont générés par [`sources/gen-recap-j1.py`](sources/gen-recap-j1.py) (`python3 sources/gen-recap-j1.py` depuis ce dossier) : modifiez le script plutôt que le fichier, ou retouchez directement dans Excalidraw si c'est ponctuel.
+Les schémas sont générés par [`sources/gen-idees-infra-j1.py`](sources/gen-idees-infra-j1.py) (`python3 sources/gen-idees-infra-j1.py` depuis ce dossier) : modifiez le script plutôt que le fichier, ou retouchez directement dans Excalidraw si c'est ponctuel.

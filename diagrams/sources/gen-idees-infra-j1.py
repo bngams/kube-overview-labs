@@ -181,5 +181,5 @@ for i,r in enumerate(rows):
 
 doc_={"type":"excalidraw","version":2,"source":"https://github.com/bngams/kube-overview-labs","elements":els,
       "appState":{"viewBackgroundColor":"#ffffff","gridSize":None},"files":{}}
-json.dump(doc_,open("recap-j1.excalidraw","w"),ensure_ascii=False,indent=1)
+json.dump(doc_,open("idees-infra-j1.excalidraw","w"),ensure_ascii=False,indent=1)
 print(len(els),"éléments,", sum(1 for e in els if e['type']=='frame'),"cadres")
