@@ -8,7 +8,9 @@ Deux présentations HTML (reveal.js), une par jour :
 
 ## Ouvrir les slides
 
-Double-cliquez sur le fichier : il s'ouvre dans le navigateur. Une connexion Internet est nécessaire (reveal.js et les polices viennent d'un CDN).
+En ligne : [bngams.github.io/kube-overview-labs](https://bngams.github.io/kube-overview-labs/) ([jour 1](https://bngams.github.io/kube-overview-labs/slides/jour1.html), [jour 2](https://bngams.github.io/kube-overview-labs/slides/jour2.html), [conférence](https://bngams.github.io/kube-overview-labs/slides/talk.html)).
+
+En local : double-cliquez sur le fichier : il s'ouvre dans le navigateur. Une connexion Internet est nécessaire (reveal.js et les polices viennent d'un CDN).
 
 Si un navigateur bloque les fichiers locaux, servez le dossier :
 
