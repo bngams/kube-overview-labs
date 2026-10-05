@@ -1,0 +1,22 @@
+services:
+  voteApp:
+    image: ghcr.io/bngams/kube-vote:1.0
+    ports:
+      - "8082:80"
+    # networks...
+    # volumes:
+    # logs
+    # ...
+
+  #voteServer:
+    # image:
+
+  voteDBCache:
+    image: redis:latest 
+
+# networks:
+
+# volumes:
+
+
+
