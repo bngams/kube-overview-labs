@@ -60,7 +60,10 @@ Les mots de la formation, expliqués simplement, avec le TP où vous les avez re
 | **CNI** (Calico, Cilium…) | Le composant réseau du cluster ; c'est lui qui applique (ou non) les NetworkPolicies | 05 |
 | **RBAC** | Les droits d'accès : qui a le droit de faire quoi, dans quel namespace | 05 |
 | **Pod Security** | Le niveau de sécurité exigé des pods d'un namespace (interdire les conteneurs administrateurs…) | 05 |
-| **Kyverno**, **OPA Gatekeeper** | Des moteurs de politiques, qui vérifient automatiquement que tout ce qui entre dans le cluster respecte les règles de l'entreprise | 05 |
+| **Moteur de politiques** (*policy engine*) | Un garde-fou automatique : tout objet envoyé au cluster est vérifié par rapport aux règles de l'entreprise avant d'être accepté | 05 |
+| **Kyverno** | Un moteur de politiques très utilisé, dont les règles s'écrivent en YAML. Il sait **valider** (refuser une image `:latest`, un pod sans réservations…), **modifier** (ajouter une étiquette, des réservations par défaut) et **générer** (donner à chaque nouveau namespace son quota et sa règle « tout fermer »). Projet diplômé de la CNCF en mars 2026 | 05 |
+| **OPA Gatekeeper** | L'autre grand moteur de politiques, avec son propre langage de règles | 05 |
+| « *Refusé par une policy* » | Un moteur de politiques a bloqué un fichier qui ne respectait pas une règle : c'est voulu | 05 |
 
 ## Configuration
 

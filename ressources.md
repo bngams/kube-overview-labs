@@ -29,6 +29,17 @@ Une sélection de lectures et de vidéos pour prolonger la formation. La colonne
 | [Killercoda, Kubernetes playgrounds](https://killercoda.com/playgrounds) | clusters dans le navigateur | 🔵 | Un cluster jetable gratuit, sans rien installer, pour refaire les TPs chez soi |
 | Les TPs de cette formation | ce dépôt | 🟢 🔵 | Avec minikube (TP00, mode local), tous les TPs se refont sur votre poste |
 
+## Isoler et sécuriser (TP05)
+
+| Ressource | Format | Pour qui | Pourquoi |
+|---|---|---|---|
+| [Network Policy Editor](https://editor.networkpolicy.io/) (Isovalent) | outil visuel en ligne, avec tutoriel | 🟢 🔵 | Dessiner des règles réseau et voir le YAML se construire, sans cluster ni risque |
+| [Kyverno](https://kyverno.io/) · [introduction](https://kyverno.io/docs/introduction/) | site officiel, documentation | 🟢 🔵 | Comprendre ce qu'est un moteur de politiques : valider, modifier, générer |
+| [Bibliothèque de règles Kyverno](https://kyverno.io/policies/) | catalogue de règles prêtes à l'emploi | 🟢 🔵 | De nombreux exemples concrets (« interdire `:latest` », « exiger des réservations »…) : très parlant pour voir ce qu'une entreprise peut imposer |
+| [Annonce du diplôme de Kyverno](https://www.cncf.io/announcements/2026/03/24/cloud-native-computing-foundation-announces-kyvernos-graduation/) (CNCF, mars 2026) | article | 🟢 | Qui l'utilise (Bloomberg, Spotify, Deutsche Telekom…) et pourquoi c'est devenu un standard |
+| [OPA Gatekeeper](https://open-policy-agent.github.io/gatekeeper/website/) | documentation | 🔵 | L'alternative à Kyverno |
+| [NetworkPolicies](https://kubernetes.io/docs/concepts/services-networking/network-policies/) · [Pod Security](https://kubernetes.io/docs/concepts/security/pod-security-admission/) | documentation officielle | 🔵 | Les références sur les règles réseau et la sécurité des pods |
+
 ## Pour aller plus loin (profils techniques)
 
 | Ressource | Format | Pour qui | Pourquoi |
@@ -38,4 +49,4 @@ Une sélection de lectures et de vidéos pour prolonger la formation. La colonne
 | [Gateway API](https://gateway-api.sigs.k8s.io/) | documentation | 🔵 | Le successeur de l'Ingress (TP04) |
 | [Fin de maintenance d'Ingress NGINX](https://kubernetes.io/blog/2025/11/11/ingress-nginx-retirement/) (blog Kubernetes, nov. 2025) | article | 🔵 | Pourquoi le contrôleur NGINX historique n'est plus maintenu depuis mars 2026, et vers quoi migrer |
 
-> 💡 Les liens ont été vérifiés le 5 octobre 2026. Les sites de Red Hat et d'O'Reilly bloquent les vérifications automatiques : si un lien ne fonctionne plus, une recherche du titre suffit à retrouver la ressource.
+> 💡 Les liens ont été vérifiés le 6 octobre 2026. Les sites de Red Hat et d'O'Reilly bloquent les vérifications automatiques : si un lien ne fonctionne plus, une recherche du titre suffit à retrouver la ressource.
