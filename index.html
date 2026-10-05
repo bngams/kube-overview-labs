@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kubernetes, vue d'ensemble</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#1e1e1e; --muted:#5c5f66; --accent:#1971c2; --bg:#ffffff; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:Inter,system-ui,sans-serif; }
+  main { max-width:860px; margin:0 auto; padding:48px 16px; }
+  h1 { font-size:2.2em; margin:0 0 .2em; }
+  .kicker { font-family:Kalam,cursive; color:var(--accent); font-size:1.2em; margin:0; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; margin:28px 0; }
+  a.card { display:block; border:2px solid var(--ink); border-radius:16px; padding:18px; text-decoration:none; color:var(--ink); }
+  a.card:hover { transform:translateY(-2px); }
+  .blue{background:#a5d8ff}.green{background:#b2f2bb}.yellow{background:#ffec99}
+  .card b { display:block; font-size:1.15em; margin-bottom:6px; }
+  .card span { color:#343a40; font-size:.95em; }
+  p.small { color:var(--muted); font-size:.95em; }
+  a { color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">Formation Kubernetes</p>
+  <h1>Kubernetes : vue d'ensemble</h1>
+  <p>Supports d'une formation de 2 jours pour un public mixte (profils techniques et chefs de projet).</p>
+  <div class="grid">
+    <a class="card blue" href="slides/jour1.html"><b>Jour 1</b><span>Des conteneurs à Kubernetes : l'état souhaité, passer à l'échelle</span></a>
+    <a class="card green" href="slides/jour2.html"><b>Jour 2</b><span>Services, configuration, mises à jour, pannes, Kubernetes dans votre projet</span></a>
+    <a class="card yellow" href="slides/talk.html"><b>Conférence</b><span>Conteneurs et Kubernetes en chiffres, pour tout public</span></a>
+  </div>
+  <p class="small">Dans une présentation : <b>F</b> plein écran, <b>S</b> notes du formateur, <b>Échap</b> vue d'ensemble.</p>
+  <p>Les TP, le glossaire et les ressources sont sur le dépôt : <a href="https://github.com/bngams/kube-overview-labs">github.com/bngams/kube-overview-labs</a></p>
+</main>
+</body>
+</html>
