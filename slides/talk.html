@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kubernetes, la nouvelle norme</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.2.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.2.1/theme/white.min.css">
+<link rel="stylesheet" href="theme.css">
+<style>
+  /* Spécifique au format « talk » : grands chiffres, peu de texte */
+  .reveal .stat { font-size: 4.2em; font-weight: 800; line-height: 1; color: var(--accent); letter-spacing: -0.03em; margin: 0.1em 0; }
+  .reveal .stat small { font-size: 0.35em; color: var(--ink); font-weight: 700; }
+  .reveal .stat-label { font-size: 1.05em; max-width: 900px; margin: 0.4em auto; }
+  .reveal .source { font-size: 0.5em; color: var(--muted); margin-top: 1.2em; }
+  .reveal .kicker { font-family: "Kalam", cursive; color: var(--accent); font-size: 1.1em; }
+  .reveal .quote { font-family: "Kalam", cursive; font-size: 1.5em; line-height: 1.3; max-width: 950px; margin: 0 auto; }
+  .reveal .trio { display: flex; gap: 1em; justify-content: center; }
+  .reveal .trio > div { flex: 1; border: 2px solid var(--ink); border-radius: 18px; padding: 0.5em; }
+  .reveal .trio .n { font-size: 2.1em; font-weight: 800; color: var(--accent); line-height: 1.1; }
+  .reveal .trio .l { font-size: 0.6em; }
+  .reveal section.dark { color: #fff; }
+  .reveal section.dark h1, .reveal section.dark h2 { color: #fff; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1e1e1e"/></marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e03131"/></marker>
+    <!-- La roue de gouvernail (logo stylisé de Kubernetes, « timonier » en grec) -->
+    <g id="helm">
+      <circle cx="0" cy="0" r="46" fill="#326ce5" stroke="#1e1e1e" stroke-width="3"/>
+      <circle cx="0" cy="0" r="24" fill="none" stroke="#fff" stroke-width="5"/>
+      <g stroke="#fff" stroke-width="5" stroke-linecap="round">
+        <line x1="0" y1="-8" x2="0" y2="-38"/><line x1="0" y1="-8" x2="0" y2="-38" transform="rotate(51.4)"/><line x1="0" y1="-8" x2="0" y2="-38" transform="rotate(102.8)"/>
+        <line x1="0" y1="-8" x2="0" y2="-38" transform="rotate(154.2)"/><line x1="0" y1="-8" x2="0" y2="-38" transform="rotate(205.6)"/><line x1="0" y1="-8" x2="0" y2="-38" transform="rotate(257)"/>
+        <line x1="0" y1="-8" x2="0" y2="-38" transform="rotate(308.4)"/>
+      </g>
+      <circle cx="0" cy="0" r="8" fill="#fff"/>
+    </g>
+  </defs>
+</svg>
+
+<div class="reveal"><div class="slides">
+
+<!-- 1. Titre -->
+<section>
+  <svg class="diagram" viewBox="0 0 900 300" width="760">
+    <!-- mer -->
+    <path d="M0 250 Q 75 235 150 250 T 300 250 T 450 250 T 600 250 T 750 250 T 900 250 V 300 H 0 Z" fill="#d0ebff"/>
+    <!-- coque -->
+    <path class="box" d="M170 190 H 760 L 720 255 H 215 Z" fill="#495057"/>
+    <!-- conteneurs -->
+    <rect class="box f-blue" x="230" y="140" width="90" height="48" rx="4"/><rect class="box f-yellow" x="325" y="140" width="90" height="48" rx="4"/>
+    <rect class="box f-green" x="420" y="140" width="90" height="48" rx="4"/><rect class="box f-red" x="515" y="140" width="90" height="48" rx="4"/>
+    <rect class="box f-violet" x="275" y="90" width="90" height="48" rx="4"/><rect class="box f-orange" x="370" y="90" width="90" height="48" rx="4"/>
+    <rect class="box f-blue" x="465" y="90" width="90" height="48" rx="4"/>
+    <!-- poste de pilotage et gouvernail -->
+    <rect class="box f-white" x="625" y="100" width="90" height="88" rx="6"/>
+    <use href="#helm" transform="translate(670 70) scale(0.75)"/>
+  </svg>
+  <h1>Conteneurs et Kubernetes</h1>
+  <p class="kicker">Comment une boîte standard et un « timonier » sont devenus la norme du logiciel</p>
+  <aside class="notes">Format conférence : 20 à 30 minutes, pour tout public. L'illustration résume tout le propos : des conteneurs standardisés (comme le transport maritime) et un pilote, Kubernetes (« timonier » en grec), qui les conduit.</aside>
+</section>
+
+<!-- 2. Le problème -->
+<section>
+  <h2>Un problème vieux comme l'informatique</h2>
+  <p class="quote">« Ça marche sur ma machine… »</p>
+  <svg class="diagram" viewBox="0 0 900 220" width="720">
+    <rect class="box f-green" x="40" y="40" width="230" height="130" rx="14"/><text class="t" x="155" y="95" text-anchor="middle">💻 développement</text><text class="t" x="155" y="135" text-anchor="middle">✅</text>
+    <path class="arrow" d="M280 105 H 360"/>
+    <rect class="box f-yellow" x="370" y="40" width="200" height="130" rx="14"/><text class="t" x="470" y="95" text-anchor="middle">🧪 recette</text><text class="t" x="470" y="135" text-anchor="middle">⚠️</text>
+    <path class="arrow" d="M580 105 H 640"/>
+    <rect class="box f-red" x="650" y="40" width="220" height="130" rx="14"/><text class="t" x="760" y="95" text-anchor="middle">🚀 production</text><text class="t" x="760" y="135" text-anchor="middle">❌</text>
+  </svg>
+  <p class="small">Versions différentes, configurations différentes, serveurs différents : chaque livraison est un pari.</p>
+  <aside class="notes">Faire réagir la salle : qui a déjà vécu une mise en production ratée à cause d'une différence d'environnement ? C'est le point de départ de toute l'histoire des conteneurs.</aside>
+</section>
+
+<!-- 3. L'idée du conteneur -->
+<section>
+  <h2>L'idée : standardiser la boîte, pas le contenu</h2>
+  <div class="cols">
+    <div class="card grey"><h4>🚢 1956 : le conteneur maritime</h4><p class="small">Une boîte de taille standard. Les ports, les grues, les navires et les camions s'adaptent à elle. Le coût du transport s'effondre, le commerce mondial explose.</p></div>
+    <div class="card blue"><h4>📦 2013 : le conteneur logiciel</h4><p class="small">Docker popularise une boîte standard pour les applications : le programme <b>et</b> tout ce dont il a besoin. Elle tourne pareil sur un portable, en recette ou en production.</p></div>
+  </div>
+  <p class="tagline mt">Même idée, même effet : on arrête de se soucier du contenu pour industrialiser le transport.</p>
+  <aside class="notes">Le conteneur maritime (Malcom McLean, 1956) est une métaphore très parlante. Docker (2013) n'a pas inventé l'isolation de processus (qui existait sous Linux), mais l'a rendue simple et standard.</aside>
+</section>
+
+<!-- 4. Gartner -->
+<section>
+  <p class="kicker">Les conteneurs deviennent la norme</p>
+  <svg class="diagram" viewBox="0 -30 900 330" width="720">
+    <line x1="80" y1="250" x2="820" y2="250" stroke="#1e1e1e" stroke-width="2.5"/>
+    <rect class="box f-grey" x="200" y="132" width="160" height="118" rx="6"/>
+    <text class="tl" x="280" y="120" text-anchor="middle">&lt; 50 %</text><text class="t" x="280" y="282" text-anchor="middle">2023</text>
+    <g class="fragment">
+      <rect class="box f-blue" x="540" y="28" width="160" height="222" rx="6"/>
+      <text class="tl" x="620" y="18" text-anchor="middle">&gt; 95 %</text><text class="t" x="620" y="282" text-anchor="middle">2029</text>
+      <path class="arrow" d="M370 170 C 450 140, 470 90, 530 70"/>
+    </g>
+  </svg>
+  <p class="stat-label">des organisations dans le monde font tourner des <b>applications en conteneurs en production</b></p>
+  <p class="source">Prévision Gartner, « How to Run Containers and Kubernetes in Production », avril 2024</p>
+  <aside class="notes">Chiffre Gartner : moins de 50 % des organisations en 2023, plus de 95 % prévus en 2029. En six ans, les conteneurs passent de « technologie d'avant-garde » à « standard de fait ».</aside>
+</section>
+
+<!-- 5. CNCF 82 % -->
+<section>
+  <p class="kicker">Et pour piloter ces conteneurs…</p>
+  <p class="stat">82 %</p>
+  <p class="stat-label">des organisations qui utilisent des conteneurs font tourner <b>Kubernetes en production</b></p>
+  <svg class="diagram" viewBox="0 0 900 120" width="640">
+    <text class="t" x="20" y="45">2023</text><rect class="box f-grey" x="110" y="20" width="462" height="38" rx="6"/><text class="t" x="585" y="47">66 %</text>
+    <text class="t" x="20" y="100">2025</text><rect class="box f-blue" x="110" y="75" width="574" height="38" rx="6"/><text class="t" x="697" y="102">82 %</text>
+  </svg>
+  <p class="source">CNCF Annual Cloud Native Survey 2025, publiée en janvier 2026</p>
+  <aside class="notes">Il existe d'autres orchestrateurs (Docker Swarm, Nomad, ECS…), mais Kubernetes s'est imposé comme le standard : 82 % des utilisateurs de conteneurs l'ont en production, contre 66 % deux ans plus tôt.</aside>
+</section>
+
+<!-- 6. Cloud native partout -->
+<section>
+  <p class="kicker">Une transformation déjà largement engagée</p>
+  <div class="trio">
+    <div><p class="n">98 %</p><p class="l">des organisations interrogées ont adopté des pratiques <b>cloud native</b></p></div>
+    <div><p class="n">59 %</p><p class="l">déclarent que « beaucoup » ou « presque tout » leur développement est cloud native</p></div>
+    <div><p class="n">~20 M</p><p class="l">de développeurs cloud native dans le monde début 2026</p></div>
+  </div>
+  <p class="source">CNCF Annual Cloud Native Survey 2025 (janv. 2026) · CNCF / SlashData, State of Cloud Native Development, mars 2026 (19,9 M de développeurs)</p>
+  <aside class="notes">Cloud native : concevoir les applications pour le cloud (conteneurs, orchestration, livraison continue). Les 20 millions de développeurs : passés de 15,6 M (T3 2025) à 19,9 M (T1 2026), selon l'étude CNCF/SlashData.</aside>
+</section>
+
+<!-- 7. Le projet Kubernetes -->
+<section>
+  <h2>Un projet open source hors norme</h2>
+  <svg class="diagram" viewBox="0 0 900 200" width="800">
+    <line x1="40" y1="100" x2="860" y2="100" stroke="#1e1e1e" stroke-width="3"/>
+    <circle class="box f-yellow" cx="90" cy="100" r="16"/><text class="t" x="90" y="60" text-anchor="middle">2003</text><text class="ts" x="90" y="145" text-anchor="middle">Borg,</text><text class="ts" x="90" y="168" text-anchor="middle">chez Google</text>
+    <circle class="box f-blue" cx="300" cy="100" r="16"/><text class="t" x="300" y="60" text-anchor="middle">juin 2014</text><text class="ts" x="300" y="145" text-anchor="middle">1er commit public</text><text class="ts" x="300" y="168" text-anchor="middle">de Kubernetes</text>
+    <circle class="box f-green" cx="500" cy="100" r="16"/><text class="t" x="500" y="60" text-anchor="middle">2015</text><text class="ts" x="500" y="145" text-anchor="middle">version 1.0,</text><text class="ts" x="500" y="168" text-anchor="middle">création de la CNCF</text>
+    <circle class="box f-violet" cx="720" cy="100" r="16"/><text class="t" x="720" y="60" text-anchor="middle">2024</text><text class="ts" x="720" y="145" text-anchor="middle">10 ans :</text><text class="ts" x="720" y="168" text-anchor="middle">88 000 contributeurs</text>
+  </svg>
+  <div class="trio fragment">
+    <div><p class="n">88 000+</p><p class="l">contributeurs</p></div>
+    <div><p class="n">8 000+</p><p class="l">entreprises</p></div>
+    <div><p class="n">44</p><p class="l">pays</p></div>
+  </div>
+  <p class="source">kubernetes.io, « 10 Years of Kubernetes », juin 2024</p>
+  <aside class="notes">Kubernetes s'inspire de Borg, l'outil interne qui fait tourner les services de Google depuis le début des années 2000. Ouvert en 2014, confié à la toute nouvelle Cloud Native Computing Foundation en 2015. C'est aujourd'hui l'un des plus grands projets open source au monde.</aside>
+</section>
+
+<!-- 8. L'écosystème CNCF -->
+<section>
+  <h2>Autour de Kubernetes, tout un écosystème</h2>
+  <div class="cols">
+    <div style="flex:1.1">
+      <svg class="diagram" viewBox="0 0 460 330" width="440">
+        <polygon class="box f-green" points="230,20 300,110 160,110"/><text class="ts" x="230" y="95" text-anchor="middle">39</text>
+        <polygon class="box f-blue" points="160,115 300,115 360,200 100,200"/><text class="t" x="230" y="168" text-anchor="middle">38</text>
+        <polygon class="box f-yellow" points="95,205 365,205 440,310 20,310"/><text class="t" x="230" y="268" text-anchor="middle">153</text>
+        <text class="ts" x="330" y="75">diplômés</text><text class="ts" x="370" y="160">en incubation</text><text class="ts" x="20" y="200">sandbox</text>
+      </svg>
+    </div>
+    <div class="left" style="flex:0.9">
+      <p><b>230</b> projets hébergés par la CNCF, de la surveillance à la sécurité</p>
+      <p><b>300 000+</b> contributeurs, <b>190</b> pays, <b>~800</b> organisations membres</p>
+      <p><b>2 400+</b> produits et projets recensés dans le <i>CNCF Landscape</i></p>
+    </div>
+  </div>
+  <p class="source">CNCF Annual Report 2025 (mars 2026) · cncf/landscape, décompte d'octobre 2026</p>
+  <aside class="notes">Les projets passent par trois étapes de maturité : sandbox (expérimental), incubation, puis « diplômé » (graduated), comme Kubernetes, Prometheus ou Envoy. Le Landscape (landscape.cncf.io) est spectaculaire à montrer en direct : il illustre la richesse… et la complexité de l'écosystème.</aside>
+</section>
+
+<!-- 9. Kubernetes en une image -->
+<section>
+  <h2>Kubernetes, en une image</h2>
+  <div class="cols">
+    <div class="card red"><h4>🔧 Hier : donner des ordres</h4><p>« Lance ce programme sur ce serveur. »</p><p class="small">S'il tombe, quelqu'un doit s'en apercevoir et le relancer.</p></div>
+    <div class="card green"><h4>🎯 Avec Kubernetes : fixer un objectif</h4><p>« Je veux 3 exemplaires de cette application, toujours. »</p><p class="small">Kubernetes vérifie en permanence et corrige tout seul.</p></div>
+  </div>
+  <p class="quote mt">Kubernetes est un <b>thermostat</b> pour applications.</p>
+  <aside class="notes">On ne dit plus « allume le radiateur », on dit « je veux 20 °C ». C'est l'idée centrale : l'état souhaité, et une boucle qui le fait respecter en permanence (panne, surcharge, mise à jour).</aside>
+</section>
+
+<!-- 10. Ce que ça change -->
+<section>
+  <h2>Ce que ça change pour un projet</h2>
+  <div class="cols">
+    <div class="card green"><h4>🛟 Disponibilité</h4><p class="small">Une panne devient un écart, corrigé automatiquement.</p></div>
+    <div class="card blue"><h4>📈 Élasticité</h4><p class="small">Absorber un pic de trafic en ajoutant des exemplaires, puis réduire.</p></div>
+    <div class="card violet"><h4>🚀 Livraisons</h4><p class="small">Mises à jour sans coupure, retour arrière en quelques secondes.</p></div>
+    <div class="card yellow"><h4>🌍 Portabilité</h4><p class="small">Les mêmes fichiers chez AWS, Google, Azure, OVHcloud… ou chez soi, en grande partie.</p></div>
+  </div>
+  <aside class="notes">Ce sont les quatre bénéfices que les participants expérimentent pendant les deux jours de formation.</aside>
+</section>
+
+<!-- 11. Agilité -->
+<section>
+  <h2>Kubernetes et agilité</h2>
+  <svg class="diagram" viewBox="0 0 900 300" width="760">
+    <circle cx="450" cy="150" r="115" fill="none" stroke="#1e1e1e" stroke-width="2" stroke-dasharray="8 6"/>
+    <rect class="box f-yellow" x="370" y="10" width="160" height="56" rx="12"/><text class="ts" x="450" y="44" text-anchor="middle">💡 idée, user story</text>
+    <rect class="box f-blue" x="600" y="70" width="180" height="56" rx="12"/><text class="ts" x="690" y="104" text-anchor="middle">📦 image conteneur</text>
+    <rect class="box f-violet" x="600" y="180" width="180" height="56" rx="12"/><text class="ts" x="690" y="214" text-anchor="middle">🚀 déploiement continu</text>
+    <rect class="box f-green" x="370" y="236" width="160" height="56" rx="12"/><text class="ts" x="450" y="270" text-anchor="middle">👥 retours utilisateurs</text>
+    <rect class="box f-orange" x="120" y="150" width="180" height="56" rx="12"/><text class="ts" x="210" y="184" text-anchor="middle">📊 mesurer, ajuster</text>
+    <text class="t" x="450" y="158" text-anchor="middle">petits incréments,</text><text class="t" x="450" y="186" text-anchor="middle">souvent</text>
+  </svg>
+  <p class="small">L'agilité promet de livrer souvent et d'apprendre vite. Les conteneurs (le même paquet partout) et Kubernetes (mises à jour sans coupure, retour arrière immédiat) rendent ces livraisons fréquentes <b>sûres et banales</b>.</p>
+  <aside class="notes">Agilité et DevOps : livrer de petits incréments, souvent, et apprendre des retours. Le frein historique : chaque mise en production était risquée et rare. Conteneurs + Kubernetes + chaîne de livraison automatisée (CI/CD, GitOps) font de la livraison un geste quotidien.</aside>
+</section>
+
+<!-- 12. DORA -->
+<section>
+  <p class="kicker">Ce que font les équipes les plus performantes</p>
+  <div class="trio">
+    <div><p class="n">⚡</p><p class="l">déploient <b>à la demande</b>, souvent plusieurs fois par jour</p></div>
+    <div><p class="n">⏱️</p><p class="l">passent d'une modification au déploiement en <b>moins d'un jour</b></p></div>
+    <div><p class="n">🛟</p><p class="l">rétablissent le service en <b>moins d'une heure</b> après un incident</p></div>
+  </div>
+  <p class="stat-label mt">Vitesse <b>et</b> stabilité vont ensemble : les meilleures équipes livrent plus souvent… et se trompent moins.</p>
+  <p class="source">DORA (Google Cloud), Accelerate State of DevOps Report 2024 : profil des équipes « elite »</p>
+  <aside class="notes">Les recherches DORA, menées depuis une décennie, mesurent quatre indicateurs : fréquence de déploiement, délai de mise en production, taux d'échec des changements, temps de rétablissement. Kubernetes n'est pas une garantie de performance, mais il outille directement ces quatre indicateurs (déploiements progressifs, retour arrière, réparation automatique).</aside>
+</section>
+
+<!-- 13. Le vrai défi : la culture -->
+<section>
+  <h2>Le premier obstacle n'est pas technique</h2>
+  <svg class="diagram" viewBox="0 0 900 260" width="760">
+    <text class="t" x="20" y="45">changement culturel</text><rect class="box f-red" x="300" y="20" width="470" height="38" rx="6"/><text class="t" x="785" y="47">47 %</text>
+    <text class="t" x="20" y="105">manque de formation</text><rect class="box f-orange" x="300" y="80" width="360" height="38" rx="6"/><text class="t" x="675" y="107">36 %</text>
+    <text class="t" x="20" y="165">sécurité</text><rect class="box f-yellow" x="300" y="140" width="360" height="38" rx="6"/><text class="t" x="675" y="167">36 %</text>
+    <text class="t" x="20" y="225">complexité</text><rect class="box f-grey" x="300" y="200" width="340" height="38" rx="6"/><text class="t" x="655" y="227">34 %</text>
+  </svg>
+  <p class="stat-label">Principaux freins cités à l'adoption du cloud native</p>
+  <p class="source">CNCF Annual Cloud Native Survey 2025 (janv. 2026)</p>
+  <aside class="notes">Message clé pour les chefs de projet et managers : la technologie est mûre, ce sont l'organisation, les compétences et la culture qui font la différence. D'où l'intérêt de former tout le monde, pas seulement les techniques.</aside>
+</section>
+
+<!-- 14. Les limites -->
+<section>
+  <h2>Kubernetes n'est pas une solution miracle</h2>
+  <div class="cols">
+    <div class="card red"><h4>🧠 Compétences</h4><p class="small">Souvent le premier coût : exploitation, astreintes, sécurité.</p></div>
+    <div class="card orange"><h4>🧩 Complexité</h4><p class="small">Beaucoup de concepts et d'outils autour. Une erreur de configuration peut tout bloquer.</p></div>
+    <div class="card yellow"><h4>💶 Coûts</h4><p class="small">Un cluster tourne en permanence ; il faut piloter la facture (FinOps).</p></div>
+    <div class="card grey"><h4>🎯 Pertinence</h4><p class="small">Un site vitrine ou une petite application n'en ont pas besoin.</p></div>
+  </div>
+  <aside class="notes">Comme pour le low-code, il faut choisir la bonne approche selon le projet. Beaucoup d'organisations passent par un Kubernetes « managé » pour réduire la charge d'exploitation.</aside>
+</section>
+
+<!-- 15. Choisir -->
+<section>
+  <h2>Choisir le bon niveau de plateforme</h2>
+  <svg class="diagram" viewBox="0 0 900 230" width="840">
+    <path class="arrow" d="M30 200 H 870"/><text class="ts muted" x="450" y="225" text-anchor="middle">de plus en plus de contrôle… et de travail pour l'équipe</text>
+    <rect class="box f-green" x="20" y="40" width="200" height="130" rx="14"/><text class="ts" x="120" y="80" text-anchor="middle">Sans Kubernetes</text><text class="ts muted" x="120" y="112" text-anchor="middle">hébergement, PaaS,</text><text class="ts muted" x="120" y="136" text-anchor="middle">serverless</text>
+    <rect class="box f-blue" x="240" y="40" width="200" height="130" rx="14"/><text class="ts" x="340" y="80" text-anchor="middle">Kubernetes managé</text><text class="ts muted" x="340" y="112" text-anchor="middle">le fournisseur gère</text><text class="ts muted" x="340" y="136" text-anchor="middle">le « cerveau »</text>
+    <rect class="box f-violet" x="460" y="40" width="200" height="130" rx="14"/><text class="ts" x="560" y="80" text-anchor="middle">Plateforme</text><text class="ts muted" x="560" y="112" text-anchor="middle">d'entreprise</text><text class="ts muted" x="560" y="136" text-anchor="middle">(OpenShift…)</text>
+    <rect class="box f-orange" x="680" y="40" width="200" height="130" rx="14"/><text class="ts" x="780" y="80" text-anchor="middle">Installé soi-même</text><text class="ts muted" x="780" y="112" text-anchor="middle">souveraineté,</text><text class="ts muted" x="780" y="136" text-anchor="middle">forte expertise</text>
+  </svg>
+  <p class="tagline">La bonne question n'est pas « Kubernetes ou pas ? », mais « quel niveau de plateforme pour ce projet ? »</p>
+  <aside class="notes">Faire le parallèle avec le cours low-code / no-code : chaque approche a ses avantages, le bon choix dépend des besoins, des compétences et du budget.</aside>
+</section>
+
+<!-- 16. L'avenir : IA -->
+<section>
+  <p class="kicker">Et demain ?</p>
+  <h2>Kubernetes, « système d'exploitation » de l'IA</h2>
+  <div class="trio">
+    <div><p class="n">66 %</p><p class="l">des organisations qui hébergent des modèles d'IA générative utilisent Kubernetes pour tout ou partie de leurs inférences</p><p class="source">CNCF, enquête 2025</p></div>
+    <div><p class="n">&gt; 75 %</p><p class="l">des déploiements d'IA et de machine learning utiliseront des conteneurs d'ici 2027, contre moins de 50 % en 2024</p><p class="source">Gartner, cité par Google Cloud (2025)</p></div>
+  </div>
+  <p class="small mt">Autres tendances : <b>platform engineering</b> (des plateformes internes qui masquent la complexité), <b>GitOps</b>, <b>FinOps</b>.</p>
+  <aside class="notes">La CNCF a lancé en 2025 un programme de conformité « Kubernetes AI Platform ». Le platform engineering : des équipes plateforme offrent aux développeurs un self-service simple, au-dessus de Kubernetes.</aside>
+</section>
+
+<!-- 17. Conclusion -->
+<section>
+  <svg class="diagram" viewBox="0 0 200 120" width="160"><use href="#helm" transform="translate(100 60) scale(1.1)"/></svg>
+  <p class="quote">Le conteneur a standardisé la <b>boîte</b>.<br>Kubernetes a standardisé le <b>pilotage</b>.<br>Le reste est une affaire d'<b>équipe</b>.</p>
+  <aside class="notes">Conclusion : la technologie est devenue une norme ; la valeur vient de la manière dont les équipes s'en servent (culture, compétences, choix de plateforme). Enchaîner éventuellement sur les questions.</aside>
+</section>
+
+<!-- 18. Sources -->
+<section>
+  <h2>Sources</h2>
+  <ul class="small">
+    <li>CNCF, <a href="https://www.cncf.io/announcements/2026/01/20/kubernetes-established-as-the-de-facto-operating-system-for-ai-as-production-use-hits-82-in-2025-cncf-annual-cloud-native-survey/">Annual Cloud Native Survey 2025</a>, janvier 2026</li>
+    <li>CNCF, <a href="https://www.cncf.io/reports/cncf-annual-report-2025/">Annual Report 2025</a>, mars 2026 · <a href="https://www.cncf.io/blog/2026/01/12/a-decade-of-open-source-in-cncf-with-300000-contributors-and-counting/">300 000+ contributeurs</a></li>
+    <li>CNCF / SlashData, <a href="https://www.cncf.io/wp-content/uploads/2026/03/State-of-Cloud-Native-Development-Q1-2026.pdf">State of Cloud Native Development, Q1 2026</a></li>
+    <li>CNCF <a href="https://landscape.cncf.io/">Landscape</a> (décompte des projets, octobre 2026)</li>
+    <li>Kubernetes, <a href="https://kubernetes.io/blog/2024/06/06/10-years-of-kubernetes/">10 Years of Kubernetes</a>, juin 2024</li>
+    <li>Gartner, <i>How to Run Containers and Kubernetes in Production</i>, avril 2024 (cité par <a href="https://portworx.com/blog/enterprises-to-double-cloud-native-usage-by-2029/">Portworx</a>) ; prédiction IA/ML citée par <a href="https://cloud.google.com/blog/products/containers-kubernetes/2025-gartner-magic-quadrant-for-container-management-leader">Google Cloud</a></li>
+    <li>DORA, <a href="https://dora.dev/research/2024/dora-report/">Accelerate State of DevOps Report 2024</a></li>
+  </ul>
+  <p class="source">Chiffres vérifiés en octobre 2026.</p>
+  <aside class="notes">Les chiffres Gartner proviennent de documents payants, cités par des sources publiques identifiées.</aside>
+</section>
+
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.2.1/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.2.1/plugin/notes/notes.min.js"></script>
+<script>
+  Reveal.initialize({ hash: true, slideNumber: "c/t", transition: "slide", width: 1280, height: 760, margin: 0.06, plugins: [RevealNotes] });
+</script>
+</body>
+</html>

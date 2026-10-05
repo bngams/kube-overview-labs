@@ -21,6 +21,7 @@ Fil rouge : Kubernetes compare en permanence **ce qu'on lui demande** (l'état s
 ## Supports
 
 - [Slides du jour 1](slides/jour1.html) et [du jour 2](slides/jour2.html) (à ouvrir dans un navigateur, touche `S` pour les notes)
+- [Présentation « conférence »](slides/talk.html) : Kubernetes en chiffres, pour tout public
 - [Glossaire](glossaire.md) : les mots de la formation, à garder sous la main
 - [Ressources](ressources.md) : lectures et vidéos recommandées
 
