@@ -4,6 +4,7 @@ Deux présentations HTML (reveal.js), une par jour :
 
 - [`jour1.html`](jour1.html) : des conteneurs à Kubernetes (modules 1 à 5, TP00 à TP03)
 - [`jour2.html`](jour2.html) : Kubernetes dans la vraie vie (modules 5 à 8, TP04 à TP08)
+- [`recap-j1.html`](recap-j1.html) : récap du jour 1, de la VM à l'orchestrateur, en 7 schémas
 - [`talk.html`](talk.html) : **présentation « conférence »** de 20 à 30 minutes, tout public (chiffres clés sourcés, conteneurs et agilité, limites, IA). Utilisable en ouverture de formation ou seule, devant un public non technique
 
 ## Ouvrir les slides

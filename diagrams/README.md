@@ -23,4 +23,6 @@ Pour l'ouvrir : [excalidraw.com](https://excalidraw.com), menu ☰ > **Ouvrir** 
 | 6 | Les vraies décisions : Rancher + RKE2 sur site, 3 nœuds de contrôle, pool Linux, nœud Windows (`nodeSelector`), Ingress, stockage, sauvegardes |
 | 7 | Tableau récapitulatif VM / conteneurs / orchestrateur |
 
+**Versions SVG** (autonomes, polices intégrées) : [`svg/`](svg/), un fichier par cadre. **Version HTML** : [`slides/recap-j1.html`](../slides/recap-j1.html), un schéma par slide, avec notes formateur ([en ligne](https://bngams.github.io/kube-overview-labs/slides/recap-j1.html)).
+
 Les schémas sont générés par [`sources/gen-recap-j1.py`](sources/gen-recap-j1.py) (`python3 sources/gen-recap-j1.py` depuis ce dossier) : modifiez le script plutôt que le fichier, ou retouchez directement dans Excalidraw si c'est ponctuel.
