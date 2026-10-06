@@ -1,0 +1,7 @@
+# Le namespace de l'application de vote (TP05). À appliquer en premier.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vote-app
+  labels:
+    name: vote-app

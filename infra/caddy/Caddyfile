@@ -43,6 +43,19 @@ lab-kube6.{$DOMAIN} {
 	import proxy_slash
 	reverse_proxy dind-6:13337
 }
+lab-kube7.{$DOMAIN} {
+	import cf_tls
+	import proxy_slash
+	reverse_proxy dind-7:13337
+}
+
+# Démo formateur PUBLIQUE (sans mot de passe) : vote en direct de la salle.
+# On entre directement dans la porte d'entrée (Ingress Traefik) du cluster de la session 7,
+# qui aiguille selon le nom demandé (règles host de l'Ingress « demo »).
+lab-kube-vote.{$DOMAIN}, lab-kube-result.{$DOMAIN} {
+	import cf_tls
+	reverse_proxy dind-7:8000
+}
 
 # Apps des binômes : lab-kubeN-PORT.{$DOMAIN} => code-server de la session N, qui vérifie
 # la connexion puis relaie vers localhost:PORT (option --proxy-domain). App servie à la racine.

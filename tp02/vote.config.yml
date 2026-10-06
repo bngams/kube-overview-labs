@@ -1,0 +1,9 @@
+# Les réglages de vote (TP06), rangés à part : on les change sans toucher à l'image ni au Deployment
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vote-config
+  namespace: vote-app
+data:
+  OPTION_A: Montagne
+  OPTION_B: Mer

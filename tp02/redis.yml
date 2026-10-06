@@ -1,0 +1,41 @@
+# redis : la file d'attente où vote dépose les votes. Joignable dans le cluster sous le nom "redis".
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: vote-app
+  labels:
+    app: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: ghcr.io/bngams/kube-redis:8-alpine
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: vote-app
+  labels:
+    app: redis
+spec:
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+      targetPort: 6379

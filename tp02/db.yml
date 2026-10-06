@@ -1,0 +1,45 @@
+# db : la base PostgreSQL qui garde les votes. Joignable dans le cluster sous le nom "db".
+# Version TP06 : les identifiants viennent du Secret "db-credentials" (voir db.secret.yml), à appliquer avant.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db
+  namespace: vote-app
+  labels:
+    app: db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      containers:
+        - name: postgres
+          image: ghcr.io/bngams/kube-postgres:15-alpine
+          envFrom:
+            - secretRef:
+                name: db-credentials
+          ports:
+            - containerPort: 5432
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+  namespace: vote-app
+  labels:
+    app: db
+spec:
+  selector:
+    app: db
+  ports:
+    - port: 5432
+      targetPort: 5432

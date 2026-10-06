@@ -1,0 +1,61 @@
+# Règles réseau de l'application de vote (TP05) : tout est fermé par défaut, puis on n'ouvre que les flux utiles.
+# 1. Par défaut, aucun pod du namespace n'accepte de connexion entrante.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: tout-fermer
+  namespace: vote-app
+spec:
+  podSelector: {}            # tous les pods du namespace
+  policyTypes: [Ingress]     # règles sur le trafic ENTRANT
+---
+# 2. vote et result sont les pages web : ouvertes à tous, sur le port 80.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: pages-web-ouvertes
+  namespace: vote-app
+spec:
+  podSelector:
+    matchExpressions:
+      - { key: app, operator: In, values: [vote, result] }
+  policyTypes: [Ingress]
+  ingress:
+    - ports:
+        - port: 80
+---
+# 3. redis n'accepte que vote et worker.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: redis-pour-vote-et-worker
+  namespace: vote-app
+spec:
+  podSelector:
+    matchLabels: { app: redis }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - { key: app, operator: In, values: [vote, worker] }
+      ports:
+        - port: 6379
+---
+# 4. db n'accepte que worker et result.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: db-pour-worker-et-result
+  namespace: vote-app
+spec:
+  podSelector:
+    matchLabels: { app: db }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - { key: app, operator: In, values: [worker, result] }
+      ports:
+        - port: 5432

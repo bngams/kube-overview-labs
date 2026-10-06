@@ -123,6 +123,19 @@ services:
     depends_on: [dind-6]
   dind-6: { <<: *dind, container_name: dind-6, volumes: [home-6:/home/student, docker-6:/var/lib/docker] }
 
+  # ---- Session 7 : formateur (démos, vote en direct de la salle) ----
+  student-7:
+    <<: *student-box
+    container_name: student-7
+    environment:
+      - PASSWORD=${S7_PASSWORD:?S7_PASSWORD manquant}
+      - PROXY_DOMAIN=lab-kube7-{{port}}.${DOMAIN}
+      - DOCKER_HOST=tcp://localhost:2375
+    network_mode: "service:dind-7"
+    volumes: [home-7:/home/student]
+    depends_on: [dind-7]
+  dind-7: { <<: *dind, container_name: dind-7, volumes: [home-7:/home/student, docker-7:/var/lib/docker] }
+
 networks:
   lab:
     name: lab-kube
@@ -142,3 +155,5 @@ volumes:
   docker-5:
   home-6:
   docker-6:
+  home-7:
+  docker-7:

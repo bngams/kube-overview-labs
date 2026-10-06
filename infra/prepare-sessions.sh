@@ -24,6 +24,7 @@ CLUSTER_IMAGES=(
   ghcr.io/bngams/kube-postgres:15-alpine
   ghcr.io/bngams/kube-worker:1.0
   ghcr.io/bngams/kube-result:1.0
+  ghcr.io/bngams/kube-result:1.1
   ghcr.io/bngams/kube-busybox:1.37
 )
 # Toutes les images viennent de ghcr.io : Docker Hub s'est révélé très lent (cf. app/README.md).

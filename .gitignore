@@ -3,3 +3,5 @@ example cours/
 .DS_Store
 .env
 .claude/
+# Secrets des TP : ne jamais committer (cf. TP06)
+*.secret.yml

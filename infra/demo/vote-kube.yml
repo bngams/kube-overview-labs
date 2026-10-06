@@ -1,0 +1,138 @@
+# Démo formateur : vote en direct de la salle, « KUBE ou PAS KUBE ? »
+# À appliquer dans la session 7 (formateur), où __DOMAIN__ est remplacé par le domaine :
+#   sed "s/__DOMAIN__/$DOMAIN/g" vote-kube.yml | kubectl apply -f -
+# Pages publiques : https://lab-kube-vote.__DOMAIN__ (vote) et https://lab-kube-result.__DOMAIN__ (résultats).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: demo
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vote-config
+  namespace: demo
+data:
+  OPTION_A: KUBE
+  OPTION_B: PAS KUBE
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vote
+  namespace: demo
+  labels: { app: vote }
+spec:
+  replicas: 3
+  selector: { matchLabels: { app: vote } }
+  template:
+    metadata: { labels: { app: vote } }
+    spec:
+      containers:
+        - name: vote
+          image: ghcr.io/bngams/kube-vote:2.0
+          ports: [ { containerPort: 80 } ]
+          envFrom: [ { configMapRef: { name: vote-config } } ]
+          readinessProbe: { httpGet: { path: /healthz, port: 80 }, periodSeconds: 5 }
+          resources: { requests: { cpu: 100m, memory: 64Mi } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: vote, namespace: demo, labels: { app: vote } }
+spec:
+  selector: { app: vote }
+  ports: [ { port: 80, targetPort: 80 } ]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: redis, namespace: demo, labels: { app: redis } }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: redis } }
+  template:
+    metadata: { labels: { app: redis } }
+    spec:
+      containers:
+        - name: redis
+          image: ghcr.io/bngams/kube-redis:8-alpine
+          ports: [ { containerPort: 6379 } ]
+---
+apiVersion: v1
+kind: Service
+metadata: { name: redis, namespace: demo }
+spec:
+  selector: { app: redis }
+  ports: [ { port: 6379, targetPort: 6379 } ]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: db, namespace: demo, labels: { app: db } }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: db } }
+  template:
+    metadata: { labels: { app: db } }
+    spec:
+      containers:
+        - name: postgres
+          image: ghcr.io/bngams/kube-postgres:15-alpine
+          env:
+            - { name: POSTGRES_USER, value: postgres }
+            - { name: POSTGRES_PASSWORD, value: postgres }
+          ports: [ { containerPort: 5432 } ]
+---
+apiVersion: v1
+kind: Service
+metadata: { name: db, namespace: demo }
+spec:
+  selector: { app: db }
+  ports: [ { port: 5432, targetPort: 5432 } ]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: worker, namespace: demo, labels: { app: worker } }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: worker } }
+  template:
+    metadata: { labels: { app: worker } }
+    spec:
+      containers:
+        - name: worker
+          image: ghcr.io/bngams/kube-worker:1.0
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: result, namespace: demo, labels: { app: result } }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: result } }
+  template:
+    metadata: { labels: { app: result } }
+    spec:
+      containers:
+        - name: result
+          image: ghcr.io/bngams/kube-result:1.1
+          ports: [ { containerPort: 80 } ]
+          envFrom: [ { configMapRef: { name: vote-config } } ]
+---
+apiVersion: v1
+kind: Service
+metadata: { name: result, namespace: demo }
+spec:
+  selector: { app: result }
+  ports: [ { port: 80, targetPort: 80 } ]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata: { name: demo, namespace: demo }
+spec:
+  rules:
+    - host: lab-kube-vote.__DOMAIN__
+      http:
+        paths:
+          - { path: /, pathType: Prefix, backend: { service: { name: vote, port: { number: 80 } } } }
+    - host: lab-kube-result.__DOMAIN__
+      http:
+        paths:
+          - { path: /, pathType: Prefix, backend: { service: { name: result, port: { number: 80 } } } }

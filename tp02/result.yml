@@ -1,0 +1,41 @@
+# result : la page des résultats en direct, qui lit db. Joignable dans le cluster sous le nom "result".
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: result
+  namespace: vote-app
+  labels:
+    app: result
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: result
+  template:
+    metadata:
+      labels:
+        app: result
+    spec:
+      containers:
+        - name: result
+          image: ghcr.io/bngams/kube-result:1.0
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: result
+  namespace: vote-app
+  labels:
+    app: result
+spec:
+  selector:
+    app: result
+  ports:
+    - port: 80
+      targetPort: 80

@@ -1,0 +1,24 @@
+# service
+apiVersion: v1
+kind: Service
+metadata:
+  name: vote
+  namespace: vote-app
+  labels:
+    app: vote
+spec:
+  # type: ClusterIP
+  # selector de pods
+  # => permet de relier le service aux pods
+  # => va chercher dans les labels du pod
+  # => ici cherche tous les pods avec label "app: vote"
+  selector:
+    app: vote
+  # comment le service est exposé
+  # et comment il transmet le trafic vers les pods
+  ports:
+    - protocol: TCP
+      # port du service
+      port: 80
+      # port du pod
+      targetPort: 80

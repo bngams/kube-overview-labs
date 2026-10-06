@@ -8,6 +8,7 @@
 #   ./cloudflare-dns.sh <IP_VPS>                 # crée / met à jour
 #   DRY_RUN=1 ./cloudflare-dns.sh <IP_VPS>       # affiche seulement ce qui serait fait
 #   ./cloudflare-dns.sh --delete                 # supprime les enregistrements (fin de formation)
+#   SESSIONS=7 EXTRA_HOSTS="lab-kube-vote lab-kube-result" ./cloudflare-dns.sh <IP>   # + session formateur et démo publique
 #
 # Lit DOMAIN et CLOUDFLARE_API_TOKEN dans .env (token : Zone > DNS > Edit sur la zone).
 # Si le token ne peut pas lister les zones, fournir CF_ZONE_ID (Cloudflare > zone > Overview > API).
@@ -31,6 +32,7 @@ esac
 : "${DOMAIN:?DOMAIN manquant (.env)}"
 
 names=()
+for h in ${EXTRA_HOSTS:-}; do names+=("$h.$DOMAIN"); done   # ex : EXTRA_HOSTS="lab-kube-vote lab-kube-result"
 for n in $(seq 1 "$SESSIONS"); do
   names+=("lab-kube$n.$DOMAIN")
   for p in $PORTS; do names+=("lab-kube$n-$p.$DOMAIN"); done
