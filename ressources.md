@@ -2,6 +2,24 @@
 
 Une sélection de lectures et de vidéos pour prolonger la formation. La colonne « Pour qui » vous aide à choisir : 🟢 accessible à tous, 🔵 plutôt pour les profils techniques.
 
+## Liens partagés pendant la formation
+
+Les liens utiles notés au fil des séances, classés par thème.
+
+| Thème | Ressource | Pourquoi |
+|---|---|---|
+| Introduction | [Présentation « Conteneurs et Kubernetes »](https://codemos.io/courses/k8s-lab/slides/talk.html) | La conférence d'ouverture, avec ses chiffres clés (aussi sur [GitHub Pages](https://bngams.github.io/kube-overview-labs/slides/talk.html)) |
+| Registres d'images | [État de l'art des solutions de registry Docker](https://www.osaxis.fr/etat-de-lart-des-solutions-de-registry-docker/) (Osaxis) | Panorama des registres d'images, publics et privés |
+| Registres d'images | [Exemple d'interface : Nexus](https://user-images.githubusercontent.com/12953323/109366876-d640dc80-7894-11eb-9a4f-10be67c000f4.png) | À quoi ressemble un registre d'entreprise |
+| Écosystème | [Projets de la CNCF](https://www.cncf.io/projects/), classés par maturité · [CNCF Landscape](https://landscape.cncf.io/) | Les projets sandbox, en incubation et diplômés |
+| Installation locale | [minikube](https://minikube.sigs.k8s.io/docs/) | La distribution utilisée en mode local (TP00) |
+| Architecture | [Topologies d'un cluster haute disponibilité](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/ha-topology/) | Plusieurs nœuds de contrôle, etcd intégré ou séparé |
+| Passage à l'échelle | [HPA avec des métriques personnalisées](https://www.nakamasato.com/kubernetes-training/autoscaler/hpa/custom-metrics/) | Aller plus loin que le CPU pour l'autoscaling (TP03) |
+| Réseau | [Network Policy Editor](https://editor.networkpolicy.io/) | Dessiner des règles réseau (TP05) |
+| Outillage | [Installer Helm](https://helm.sh/docs/intro/install) | Le gestionnaire de paquets de Kubernetes, utilisé pour installer l'observabilité |
+| Outillage | [Lens](https://lenshq.io/) | Une interface graphique pour explorer un cluster |
+| Observabilité | [Métriques et logs : Prometheus, Grafana, Loki](https://github.com/bngams/2604-intro-k8s-bis/tree/main/05-obs) | Le TP d'observabilité (fichiers de séance dans [`training/tp-obs`](training/tp-obs/)) |
+
 ## Pour comprendre sans technique
 
 | Ressource | Format | Pour qui | Pourquoi |
