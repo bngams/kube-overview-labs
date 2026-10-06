@@ -31,6 +31,10 @@ Fil rouge : Kubernetes compare en permanence **ce qu'on lui demande** (l'état s
 
 La [voting app](app/README.md) de Docker, avec notre version du service `vote` : [bngams/example-voting-app](https://github.com/bngams/example-voting-app).
 
+## En séance
+
+- [training/](training/) : les fichiers réalisés en séance avec le groupe ([`tp-voting-app`](training/tp-voting-app/) : l'application de vote, de TP02 à TP06 ; [`tp-obs`](training/tp-obs/) : observabilité, Prometheus et Loki).
+
 ## Pour le formateur
 
 - [PLAN.md](PLAN.md) : déroulé des 2 jours.

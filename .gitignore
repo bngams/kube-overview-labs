@@ -5,3 +5,5 @@ example cours/
 .claude/
 # Secrets des TP : ne jamais committer (cf. TP06)
 *.secret.yml
+# Notes de séance : liens privés (tableau blanc partagé, émargement…) -> jamais dans le dépôt public
+**/NOTES.TXT
