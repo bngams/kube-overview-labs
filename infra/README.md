@@ -99,6 +99,28 @@ Voir [labs/00-environnement](../labs/00-environnement/README.md), section 2B.
 - `kubectl port-forward … 8080:80` donne l'app sur `https://lab-kubeN-8080.DOMAIN`, derrière le mot de passe de la session (un login par sous-domaine).
 - `/proxy/<port>/` fonctionne aussi, mais casse les apps qui utilisent des chemins absolus (la page `vote` charge `/static/...`) : préférez le sous-domaine.
 
+## Session 7 : formateur et démo publique
+
+La session 7 (`https://lab-kube7.DOMAIN`, mot de passe `S7_PASSWORD`) est réservée au formateur. Elle héberge la démo **« KUBE ou PAS KUBE ? »**, que la salle peut ouvrir **sans mot de passe** (depuis un téléphone, par exemple) :
+
+| Page | Adresse |
+|---|---|
+| Vote | `https://lab-kube-vote.DOMAIN` |
+| Résultats en direct | `https://lab-kube-result.DOMAIN` |
+
+Caddy envoie ces deux noms vers la porte d'entrée (Traefik) du cluster de la session 7, et l'Ingress de [`demo/vote-kube.yml`](demo/vote-kube.yml) aiguille selon le nom demandé. La page des résultats utilise `kube-result:1.1`, dont les libellés suivent `OPTION_A` / `OPTION_B`.
+
+```bash
+# (re)déployer la démo, depuis infra/ sur le VPS
+. ./.env && docker exec -i student-7 bash -lc "sed 's/__DOMAIN__/$DOMAIN/g' | kubectl apply -f -" < demo/vote-kube.yml
+# remettre les votes à zéro
+docker exec student-7 kubectl exec -n demo deploy/db -- psql -U postgres -c "delete from votes"
+# changer la question : modifier OPTION_A / OPTION_B dans demo/vote-kube.yml, réappliquer, puis
+docker exec student-7 kubectl rollout restart -n demo deployment vote result
+```
+
+> ⚠️ Après une modification du `Caddyfile` (par exemple après un `git pull`), utilisez `docker compose restart caddy` et non `caddy reload` : le conteneur garde l'ancienne version du fichier monté tant qu'il n'est pas redémarré.
+
 ## Réinitialiser une session
 
 ```bash
