@@ -35,7 +35,7 @@ Pour recréer le cluster avec Calico (5 à 10 minutes) :
 
 ```bash
 minikube delete
-minikube start --driver=docker --cni=calico
+minikube start --driver=docker --cni=calico --memory=max
 minikube addons enable ingress
 kubectl wait -n ingress-nginx --for=condition=Ready pod -l app.kubernetes.io/component=controller --timeout=300s
 ```
